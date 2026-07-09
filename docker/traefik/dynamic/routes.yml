@@ -1,0 +1,38 @@
+http:
+  routers:
+    wordpress:
+      rule: Host(`tailwind-wordpress.localhost`)
+      entryPoints:
+        - websecure
+      tls: {}
+      service: wordpress
+
+    pma:
+      rule: Host(`pma.tailwind-wordpress.localhost`)
+      entryPoints:
+        - websecure
+      tls: {}
+      service: pma
+
+    mailhog:
+      rule: Host(`mail.tailwind-wordpress.localhost`)
+      entryPoints:
+        - websecure
+      tls: {}
+      service: mailhog
+
+  services:
+    wordpress:
+      loadBalancer:
+        servers:
+          - url: http://php:80
+
+    pma:
+      loadBalancer:
+        servers:
+          - url: http://phpmyadmin:80
+
+    mailhog:
+      loadBalancer:
+        servers:
+          - url: http://mailhog:8025
