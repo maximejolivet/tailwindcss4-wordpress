@@ -1,5 +1,7 @@
 # Commandes Docker
 
+> Pour le thème custom (Timber v2 + Tailwind CSS 4 + Vite), voir [`docs/theme.md`](theme.md).
+
 Environnement de développement local basé sur `docker/docker-compose.yml` (services : `traefik`, `php`, `database`, `node`, `phpmyadmin`, `mailhog`, `dockhand`), pour un projet WordPress [Bedrock](https://roots.io/bedrock/) (racine du repo = racine Bedrock : `composer.json`, `config/`, `web/wp` pour le cœur WordPress, `web/app` pour thèmes/plugins/uploads).
 
 Le fichier compose vit dans `docker/` mais ses volumes (`.:/var/www/html`, `./docker/traefik/...`) et le fichier `.env` sont résolus par rapport à la racine du repo : toutes les commandes brutes ci-dessous passent donc `--project-directory .`. Utiliser de préférence les raccourcis `make` qui l'encapsulent déjà.

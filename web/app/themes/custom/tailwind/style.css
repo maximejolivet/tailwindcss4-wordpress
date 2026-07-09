@@ -1,0 +1,13 @@
+/*
+ * Theme Name: Tailwind
+ * Description: Custom Bedrock theme built with Timber v2 and Tailwind CSS 4 (Vite, HMR on port 3009).
+ * Author: Maxime
+ * Version: 1.0.0
+ * Requires PHP: 8.4
+ * Text Domain: tailwind
+ */
+
+/* NOTE:
+ * This file is reserved for the theme metadata block above and is not enqueued.
+ * Write styles in assets/styles/app.css instead — it is compiled by Vite/Tailwind.
+ */

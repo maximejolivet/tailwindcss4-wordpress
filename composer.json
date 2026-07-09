@@ -38,6 +38,7 @@
     "roots/bedrock-disallow-indexing": "^2.0",
     "roots/wordpress": "7.0",
     "roots/wp-config": "^1.0",
+    "timber/timber": "^2.1",
     "vlucas/phpdotenv": "^5.0",
     "wp-theme/twentytwentyfive": "^1.0"
   },
@@ -57,6 +58,11 @@
   },
   "minimum-stability": "dev",
   "prefer-stable": true,
+  "autoload": {
+    "psr-4": {
+      "App\\Theme\\": "web/app/themes/custom/tailwind/src/"
+    }
+  },
   "extra": {
     "installer-paths": {
       "web/app/mu-plugins/{$name}/": [

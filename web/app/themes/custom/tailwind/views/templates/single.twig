@@ -1,0 +1,16 @@
+{% extends 'layouts/base.twig' %}
+
+{% block content %}
+    <article class="mx-auto max-w-3xl px-4 py-12">
+        {% if post.thumbnail %}
+            <img src="{{ post.thumbnail.src|resize(1200, 630) }}" alt="{{ post.thumbnail.alt }}" class="mb-8 w-full rounded-lg">
+        {% endif %}
+
+        <h1 class="text-3xl font-bold">{{ post.title }}</h1>
+        <p class="mt-2 text-sm text-gray-500">
+            By {{ post.author.name }} &bull; <time datetime="{{ post.date('Y-m-d H:i:s') }}">{{ post.date }}</time>
+        </p>
+
+        <div class="prose prose-neutral mt-6 max-w-none">{{ post.content }}</div>
+    </article>
+{% endblock %}

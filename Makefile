@@ -1,6 +1,6 @@
 COMPOSE = docker compose -f docker/docker-compose.yml --project-directory .
 
-.PHONY: start stop restart status logs shell install wp dockhand-register
+.PHONY: start stop restart status logs shell install wp dockhand-register npm vite-install vite-dev vite-build
 
 start: ## Start all services in the background
 	colima start && $(COMPOSE) up -d
@@ -28,3 +28,17 @@ wp: ## Run a WP-CLI command, e.g. `make wp ARGS="core install --url=... "`
 
 dockhand-register: ## Register the stack in Dockhand
 	COMPOSE_FILE=docker/docker-compose.yml ./docker/dockhand-register.sh
+
+THEME_DIR = web/app/themes/custom/tailwind
+
+npm: ## Run an npm command in the tailwind theme, e.g. `make npm ARGS="install"`
+	$(COMPOSE) exec node npm --prefix $(THEME_DIR) $(ARGS)
+
+vite-install: ## Install the tailwind theme's npm dependencies
+	$(COMPOSE) exec node npm --prefix $(THEME_DIR) install
+
+vite-dev: ## Start the Vite dev server (HMR) at https://tailwind-wordpress.localhost:3009/
+	$(COMPOSE) exec node npm --prefix $(THEME_DIR) run dev
+
+vite-build: ## Build the tailwind theme's production assets
+	$(COMPOSE) exec node npm --prefix $(THEME_DIR) run build

@@ -1,0 +1,14 @@
+{% if items %}
+    <nav>
+        <ul class="flex gap-6 text-sm font-medium">
+            {% for item in items %}
+                <li>
+                    <a href="{{ item.link }}" class="hover:text-gray-500">{{ item.title }}</a>
+                    {% if item.children %}
+                        {% include 'partials/menu.twig' with { items: item.children } %}
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </nav>
+{% endif %}

@@ -49,11 +49,33 @@ docker compose -f docker/docker-compose.yml --project-directory . exec php \
   composer require wpackagist-plugin/<slug>
 ```
 
+## Custom theme (`web/app/themes/custom/tailwind`)
+
+A custom theme built with [Timber v2](https://timber.github.io/docs/v2/) (Twig templates, `views/`) and Tailwind CSS 4 via Vite.
+
+```bash
+# Install the theme's npm dependencies (once)
+make vite-install
+
+# Start the Vite dev server (HMR) — the theme auto-detects it and serves
+# assets from https://tailwind-wordpress.localhost:3009/ instead of dist/
+make vite-dev
+
+# Build production assets (web/app/themes/custom/tailwind/dist/)
+make vite-build
+
+# Activate the theme
+make wp ARGS="theme activate custom/tailwind"
+```
+
+See [`docs/theme.md`](docs/theme.md) for the theme's architecture, Timber/Twig conventions and HMR setup.
+
 ## Roadmap
 
-- [ ] Custom WordPress theme with Vite + Tailwind CSS 4 (`web/app/themes/custom/tailwind`), HMR dev server on `https://localhost:3009/`
+- [x] Custom WordPress theme with Vite + Tailwind CSS 4 (`web/app/themes/custom/tailwind`), HMR dev server on `https://tailwind-wordpress.localhost:3009/`
 
 ## Documentation
 
 - [`docs/README.md`](docs/README.md) — commandes Docker au quotidien (start/stop/logs, accès aux conteneurs, base de données)
 - [`docker/README.md`](docker/README.md) — détails de l'environnement (Colima, Traefik, certificats, Bedrock/Composer/WP-CLI)
+- [`docs/theme.md`](docs/theme.md) — thème custom Timber v2 + Tailwind CSS 4 + Vite (architecture, templates, HMR)
