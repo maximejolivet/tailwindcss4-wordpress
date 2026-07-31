@@ -25,7 +25,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # vendor/ is built here (on the runner) rather than on the server:
       # a fresh checkout has no dev vendor/ to accidentally wipe, unlike a
@@ -37,7 +37,7 @@ jobs:
           php-version: '8.4'
       - run: composer install --prefer-dist --no-dev --optimize-autoloader --no-interaction
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
       - name: Build theme assets
@@ -45,9 +45,12 @@ jobs:
           npm --prefix web/app/themes/custom/tailwind ci
           npm --prefix web/app/themes/custom/tailwind run build
 
+      # Inline instead of a third-party action: haythem/public-ip is
+      # unmaintained (last release 2022, still on the deprecated Node 16
+      # runtime) and does nothing more than call a public IP echo service.
       - name: Get runner public IP
         id: ip
-        uses: haythem/public-ip@v1.3
+        run: echo "ipv4=$(curl -sS https://api.ipify.org)" >> "$GITHUB_OUTPUT"
 
       # o2switch caps the number of whitelisted IPs. Since every run adds a
       # new one and nothing removes old ones on its own, the quota eventually
@@ -121,7 +124,7 @@ jobs:
       # from subtly mangling the multi-line PEM content. webfactory/ssh-agent
       # loads the secret directly via `ssh-add -`, which doesn't have that
       # problem.
-      - uses: webfactory/ssh-agent@v0.9.0
+      - uses: webfactory/ssh-agent@v0.10.0
         with:
           ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
 
