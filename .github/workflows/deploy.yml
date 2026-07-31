@@ -64,16 +64,15 @@ jobs:
           echo "Get actual whitelisted IPs..."
           RESPONSE=$(curl -sX GET "$CPANEL/$ENDPOINT?r=list")
           echo "Response: $RESPONSE"
-          UNIQUE_IPS=$(echo "$RESPONSE" | jq -r '.data.list[] | .address' | sort -u)
+          LAST_IP=$(echo "$RESPONSE" | jq -r '.data.list[] | .address' | tail -n1)
 
-          for address in $UNIQUE_IPS; do
-            echo "Delete this github IP: $address (in & out)"
-            curl -sX GET "$CPANEL/$ENDPOINT?r=remove&address=$address&direction=in&port=22" | jq
+          if [ -n "$LAST_IP" ]; then
+            echo "Delete this github IP: $LAST_IP (in & out)"
+            curl -sX GET "$CPANEL/$ENDPOINT?r=remove&address=$LAST_IP&direction=in&port=22" | jq
             sleep 3
-            curl -sX GET "$CPANEL/$ENDPOINT?r=remove&address=$address&direction=out&port=22" | jq
+            curl -sX GET "$CPANEL/$ENDPOINT?r=remove&address=$LAST_IP&direction=out&port=22" | jq
             sleep 3
-          done
-          echo "All non-whitelisted IPs deleted!"
+          fi
 
           echo "Attempt to whitelist IP..."
           curl -sX POST -d 'whitelist[address]=${{ steps.ip.outputs.ipv4 }}' -d 'whitelist[port]=22' "$CPANEL/$ENDPOINT?r=add" | jq
