@@ -2,6 +2,20 @@
 
 WordPress theme built with [Timber v2](https://timber.github.io/docs/v2/) (Twig templates) and [Tailwind CSS 4](https://tailwindcss.com/) compiled by [Vite](https://vitejs.dev/), with an HMR dev server.
 
+## Table of contents
+
+- [Stack](#stack)
+- [Directory tree](#directory-tree)
+- [Twig components (`views/components/`)](#twig-components-viewscomponents)
+- [Page builder (ACF Flexible Content)](#page-builder-acf-flexible-content)
+- [Multilingual (Polylang)](#multilingual-polylang)
+- [Timber / Twig](#timber-twig)
+- [Assets (Tailwind CSS 4 + Vite)](#assets-tailwind-css-4-vite)
+- [HMR: why CSS/Twig weren't reloading (and the fix)](#hmr-why-csstwig-werent-reloading-and-the-fix)
+- [Commands](#commands)
+- [PHP autoload](#php-autoload)
+- [See also](#see-also)
+
 ## Stack
 
 | Piece | Role |
@@ -338,6 +352,20 @@ composer dump-autoload
 # 🇫🇷 Thème custom (`web/app/themes/custom/tailwind`)
 
 Thème WordPress construit avec [Timber v2](https://timber.github.io/docs/v2/) (templates Twig) et [Tailwind CSS 4](https://tailwindcss.com/) compilé par [Vite](https://vitejs.dev/), avec un serveur de développement HMR.
+
+## Sommaire
+
+- [Stack](#stack-1)
+- [Arborescence](#arborescence)
+- [Composants Twig (`views/components/`)](#composants-twig-viewscomponents)
+- [Page builder (ACF Flexible Content)](#page-builder-acf-flexible-content-1)
+- [Multilingue (Polylang)](#multilingue-polylang)
+- [Timber / Twig](#timber-twig-1)
+- [Assets (Tailwind CSS 4 + Vite)](#assets-tailwind-css-4-vite-1)
+- [HMR : pourquoi le CSS/Twig ne se rechargeait pas (et le fix)](#hmr-pourquoi-le-csstwig-ne-se-rechargeait-pas-et-le-fix)
+- [Commandes](#commandes)
+- [Autoload PHP](#autoload-php)
+- [Voir aussi](#voir-aussi)
 
 ## Stack
 

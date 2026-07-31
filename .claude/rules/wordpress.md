@@ -4,6 +4,14 @@ description: WordPress/Bedrock/Twig/ACF/Polylang conventions for this repo
 
 # 🇬🇧 WordPress conventions
 
+## Table of contents
+
+- [Bedrock structure](#bedrock-structure)
+- [Twig components (`web/app/themes/custom/tailwind/views/components/`)](#twig-components-webappthemescustomtailwindviewscomponents)
+- [Page builder (ACF / Secure Custom Fields)](#page-builder-acf-secure-custom-fields)
+- [Multilingual (Polylang)](#multilingual-polylang)
+- [Deployment (o2switch)](#deployment-o2switch)
+
 ## Bedrock structure
 
 Repo root = Bedrock root (`composer.json`, `config/`). `web/wp` = WordPress core (Composer-installed, gitignored). `web/app` = themes/plugins/uploads. Plugins/themes are managed via Composer, **never** from the WordPress admin (`DISALLOW_FILE_MODS` is set in `config/application.php`).
@@ -34,6 +42,14 @@ See @.claude/deploy.md for the full pipeline. The one gotcha worth repeating her
 ---
 
 # 🇫🇷 Conventions WordPress
+
+## Sommaire
+
+- [Structure Bedrock](#structure-bedrock)
+- [Composants Twig (`web/app/themes/custom/tailwind/views/components/`)](#composants-twig-webappthemescustomtailwindviewscomponents)
+- [Page builder (ACF / Secure Custom Fields)](#page-builder-acf-secure-custom-fields-1)
+- [Multilingue (Polylang)](#multilingue-polylang)
+- [Déploiement (o2switch)](#déploiement-o2switch)
 
 ## Structure Bedrock
 

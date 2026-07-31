@@ -14,6 +14,17 @@ this — it's a deliberate discipline for this specific document, after several
 real bugs found only by rendering (see bugs #1-2 in section 3-6
 below), never by re-reading the code.
 
+## Table of contents
+
+- [0. Starting point (verified in the repo as of 2026-07-31)](#0-starting-point-verified-in-the-repo-as-of-2026-07-31)
+- [1. Build pipeline — to do](#1-build-pipeline-to-do)
+- [2. Design tokens — done (2026-07-31)](#2-design-tokens-done-2026-07-31)
+- [3-6. Twig components — 7/7 done (2026-07-31)](#3-6-twig-components-77-done-2026-07-31)
+- [7. ACF Flexible Content page builder — done and verified end to end (2026-07-31)](#7-acf-flexible-content-page-builder-done-and-verified-end-to-end-2026-07-31)
+- [8. Polylang multilingual — configured and verified (2026-07-31)](#8-polylang-multilingual-configured-and-verified-2026-07-31)
+- [9. Quality / CI — to do](#9-quality-ci-to-do)
+- [Watch points — resolved or still open](#watch-points-resolved-or-still-open)
+
 ## 0. Starting point (verified in the repo as of 2026-07-31)
 
 What already exists, documented in detail in [`theme.md`](../theme.md)
@@ -322,6 +333,17 @@ ARGS="..."` + rendu réel). Ce dépôt n'a pas de `CLAUDE.md` qui l'impose —
 c'est une discipline volontaire pour ce document précis, après plusieurs bugs
 réels trouvés uniquement en rendant (cf. bugs n°1-2 de la section 3-6
 ci-dessous), jamais en relisant le code.
+
+## Sommaire
+
+- [0. État de départ (vérifié dans le dépôt au 2026-07-31)](#0-état-de-départ-vérifié-dans-le-dépôt-au-2026-07-31)
+- [1. Pipeline de build — à faire](#1-pipeline-de-build-à-faire)
+- [2. Design tokens — fait (2026-07-31)](#2-design-tokens-fait-2026-07-31)
+- [3-6. Composants Twig — 7/7 faits (2026-07-31)](#3-6-composants-twig-77-faits-2026-07-31)
+- [7. Page builder ACF Flexible Content — fait et vérifié de bout en bout (2026-07-31)](#7-page-builder-acf-flexible-content-fait-et-vérifié-de-bout-en-bout-2026-07-31)
+- [8. Multilingue Polylang — configuré et vérifié (2026-07-31)](#8-multilingue-polylang-configuré-et-vérifié-2026-07-31)
+- [9. Qualité / CI — à faire](#9-qualité-ci-à-faire)
+- [Points de vigilance — résolus ou encore ouverts](#points-de-vigilance-résolus-ou-encore-ouverts)
 
 ## 0. État de départ (vérifié dans le dépôt au 2026-07-31)
 

@@ -2,6 +2,17 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+# 🇬🇧 English
+
+## Table of contents
+
+- [Project](#project)
+- [Commands](#commands)
+- [Composer package source](#composer-package-source)
+- [Custom theme](#custom-theme)
+- [Linting](#linting)
+- [Documentation](#documentation)
+
 ## Project
 
 Bedrock WordPress site (PHP ≥8.4) with a custom Timber v2 + Tailwind CSS v4 + Vite theme (`web/app/themes/custom/tailwind`). Runs in Docker Compose (Traefik, PHP, MariaDB, Node) — see @.claude/docker.md and @docker/README.md.
@@ -21,6 +32,49 @@ Detailed WordPress/Bedrock/Twig/ACF/Polylang conventions: @.claude/rules/wordpre
 ## Linting
 
 PHP: `composer lint` (Pint, `pint.json`, preset `per`) / `composer test` (Pest — no tests written yet). No JS/CSS lint configured yet in the theme.
+
+## Documentation
+
+- [`.claude/docker.md`](.claude/docker.md) — day-to-day Docker commands (start/stop/logs, container access, database)
+- [`docker/README.md`](docker/README.md) — environment details (Colima, Traefik, certificates, Bedrock/Composer/WP-CLI)
+- [`.claude/theme.md`](.claude/theme.md) — custom theme: Timber v2 + Tailwind CSS 4 + Vite (architecture, components, page builder, HMR)
+- [`.claude/deploy.md`](.claude/deploy.md) — production deployment (o2switch, manual and GitHub Actions CI)
+- [`.claude/prompts/WORDPRESS.md`](.claude/prompts/WORDPRESS.md) / [`WORDPRESS-PROCESS.md`](.claude/prompts/WORDPRESS-PROCESS.md) — full mission spec and real execution journal
+
+---
+
+# 🇫🇷 Français
+
+Ce fichier fournit des indications à Claude Code (claude.ai/code) pour travailler sur le code de ce dépôt.
+
+## Sommaire
+
+- [Projet](#projet)
+- [Commandes](#commandes)
+- [Source des paquets Composer](#source-des-paquets-composer)
+- [Thème custom](#thème-custom)
+- [Linting](#linting-1)
+- [Documentation](#documentation-1)
+
+## Projet
+
+Site WordPress Bedrock (PHP ≥8.4) avec un thème custom Timber v2 + Tailwind CSS v4 + Vite (`web/app/themes/custom/tailwind`). Tourne dans Docker Compose (Traefik, PHP, MariaDB, Node) — voir @.claude/docker.md et @docker/README.md.
+
+## Commandes
+
+Toujours utiliser les cibles `make`, pas `docker compose`/`composer`/`npm` en direct — voir le tableau Commands dans @README.md (`make help` liste tout). Les cibles `make deploy*` touchent le site de production réel (o2switch) — demander confirmation à l'utilisateur avant de les exécuter.
+
+## Source des paquets Composer
+
+Le miroir Composer de ce repo (`repo.wp-packages.org`, déclaré dans `composer.json`) est **WP Packages** — la source de paquets officielle de Bedrock depuis la 1.30, en remplacement de WPackagist. Les paquets se nomment `wp-plugin/<slug>` et `wp-theme/<slug>`, **pas** `wpackagist-plugin/<slug>`/`wpackagist-theme/<slug>`.
+
+## Thème custom
+
+Conventions détaillées WordPress/Bedrock/Twig/ACF/Polylang : @.claude/rules/wordpress.md. Architecture complète : @.claude/theme.md.
+
+## Linting
+
+PHP : `composer lint` (Pint, `pint.json`, préréglage `per`) / `composer test` (Pest — aucun test écrit pour l'instant). Aucun lint JS/CSS configuré pour l'instant dans le thème.
 
 ## Documentation
 

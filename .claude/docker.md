@@ -6,6 +6,16 @@ Local development environment based on `docker/docker-compose.yml` (services: `t
 
 The compose file lives in `docker/` but its volumes (`.:/var/www/html`, `./docker/traefik/...`) and the `.env` file are resolved relative to the repo root: every raw command below therefore passes `--project-directory .`. Prefer the `make` shortcuts, which already wrap this.
 
+## Table of contents
+
+- [Monitoring](#monitoring)
+- [Build](#build)
+- [Container access](#container-access)
+- [Configuration (.env)](#configuration-env)
+- [Local URLs (via Traefik)](#local-urls-via-traefik)
+- [Services](#services)
+- [Registering the stack in Dockhand](#registering-the-stack-in-dockhand)
+
 ```bash
 COMPOSE="docker compose -f docker/docker-compose.yml --project-directory ."
 
@@ -131,6 +141,16 @@ If Dockhand authentication is enabled, set `DOCKHAND_USER` and `DOCKHAND_PASSWOR
 Environnement de développement local basé sur `docker/docker-compose.yml` (services : `traefik`, `php`, `database`, `node`, `phpmyadmin`, `mailhog`, `dockhand`), pour un projet WordPress [Bedrock](https://roots.io/bedrock/) (racine du repo = racine Bedrock : `composer.json`, `config/`, `web/wp` pour le cœur WordPress, `web/app` pour thèmes/plugins/uploads).
 
 Le fichier compose vit dans `docker/` mais ses volumes (`.:/var/www/html`, `./docker/traefik/...`) et le fichier `.env` sont résolus par rapport à la racine du repo : toutes les commandes brutes ci-dessous passent donc `--project-directory .`. Utiliser de préférence les raccourcis `make` qui l'encapsulent déjà.
+
+## Sommaire
+
+- [Suivi](#suivi)
+- [Build](#build-1)
+- [Accès aux conteneurs](#accès-aux-conteneurs)
+- [Configuration (.env)](#configuration-env-1)
+- [URLs locales (via Traefik)](#urls-locales-via-traefik)
+- [Services](#services-1)
+- [Enregistrer le stack dans Dockhand](#enregistrer-le-stack-dans-dockhand)
 
 ```bash
 COMPOSE="docker compose -f docker/docker-compose.yml --project-directory ."

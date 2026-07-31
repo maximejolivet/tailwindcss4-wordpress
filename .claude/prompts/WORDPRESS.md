@@ -11,6 +11,21 @@ via Polylang. Agency purpose: reduce Twig duplication, make multi-project
 Bedrock+Timber delivery more reliable, with Tailwind tokens (`@theme`) being
 the only customization point between projects built on this same foundation.
 
+## Table of contents
+
+- [Mission](#mission)
+  - [1. Build pipeline (already in place, to extend)](#1-build-pipeline-already-in-place-to-extend)
+  - [2. Design tokens](#2-design-tokens)
+  - [3. Twig component structure](#3-twig-component-structure)
+  - [4. Starting components (typed props in a comment + slots via `{% block %}`)](#4-starting-components-typed-props-in-a-comment-slots-via-block-)
+  - [5. Variant pattern in Twig](#5-variant-pattern-in-twig)
+  - [6. Timber / WordPress integration](#6-timber-wordpress-integration)
+  - [7. Page builder with ACF Flexible Content (multilingual)](#7-page-builder-with-acf-flexible-content-multilingual)
+  - [8. Multilingual — global config (Polylang)](#8-multilingual-global-config-polylang)
+  - [9. Quality / CI](#9-quality-ci)
+- [Constraints](#constraints)
+- [Deliverables](#deliverables)
+
 # Mission
 
 ## 1. Build pipeline (already in place, to extend)
@@ -261,6 +276,21 @@ un page builder éditorial ACF Flexible Content, sur un site multilingue FR/EN
 via Polylang. Finalité agence : réduire la duplication Twig, fiabiliser les
 livraisons multi-projets Bedrock+Timber, les tokens Tailwind (`@theme`) étant
 le seul point de personnalisation entre projets basés sur ce même socle.
+
+## Sommaire
+
+- [Mission](#mission-1)
+  - [1. Pipeline de build (déjà en place, à étendre)](#1-pipeline-de-build-déjà-en-place-à-étendre)
+  - [2. Design tokens](#2-design-tokens-1)
+  - [3. Structure des composants Twig](#3-structure-des-composants-twig)
+  - [4. Composants de départ (props typées en commentaire + slots via `{% block %}`)](#4-composants-de-départ-props-typées-en-commentaire-slots-via-block-)
+  - [5. Pattern de variants dans le Twig](#5-pattern-de-variants-dans-le-twig)
+  - [6. Intégration Timber / WordPress](#6-intégration-timber-wordpress)
+  - [7. Page builder avec ACF Flexible Content (multilingue)](#7-page-builder-avec-acf-flexible-content-multilingue)
+  - [8. Multilingue — config globale (Polylang)](#8-multilingue-config-globale-polylang)
+  - [9. Qualité / CI](#9-qualité-ci)
+- [Contraintes](#contraintes)
+- [Livrables](#livrables)
 
 # Mission
 

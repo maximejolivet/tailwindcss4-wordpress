@@ -10,6 +10,15 @@ rebuild dependencies/assets. They differ on **where** `composer install`
 runs (see §3) because of a local constraint: not breaking the dev `vendor/`
 (Pint, Pest) on the developer's machine.
 
+## Table of contents
+
+- [1. One-shot cPanel setup (do once)](#1-one-shot-cpanel-setup-do-once)
+- [2. `make deploy` (manual, from your machine)](#2-make-deploy-manual-from-your-machine)
+- [3. GitHub Actions (`deploy.yml`, automatic on push to `main`)](#3-github-actions-deployyml-automatic-on-push-to-main)
+- [4. First deployment — checklist](#4-first-deployment-checklist)
+- [5. Real issues hit and fixed (don't redo these)](#5-real-issues-hit-and-fixed-dont-redo-these)
+- [Related files](#related-files)
+
 ## 1. One-shot cPanel setup (do once)
 
 1. **Subdomain document root**: cPanel > Domains/Subdomains >
@@ -140,6 +149,15 @@ Les deux font la même chose au fond : synchroniser le code vers le serveur
 puis reconstruire les dépendances/assets. Ils diffèrent sur **où** tourne
 `composer install` (cf. §3) à cause d'une contrainte locale : ne pas casser
 le `vendor/` de dev (Pint, Pest) sur la machine du développeur.
+
+## Sommaire
+
+- [1. Config one-shot côté cPanel (à faire une seule fois)](#1-config-one-shot-côté-cpanel-à-faire-une-seule-fois)
+- [2. `make deploy` (manuel, depuis ta machine)](#2-make-deploy-manuel-depuis-ta-machine)
+- [3. GitHub Actions (`deploy.yml`, automatique sur push `main`)](#3-github-actions-deployyml-automatique-sur-push-main)
+- [4. Premier déploiement — checklist](#4-premier-déploiement-checklist)
+- [5. Ennuis réels rencontrés et corrigés (à ne pas refaire)](#5-ennuis-réels-rencontrés-et-corrigés-à-ne-pas-refaire)
+- [Fichiers concernés](#fichiers-concernés)
 
 ## 1. Config one-shot côté cPanel (à faire une seule fois)
 
