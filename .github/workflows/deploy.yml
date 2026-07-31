@@ -54,11 +54,13 @@ jobs:
             "$CPANEL/frontend/o2switch/o2switch-ssh-whitelist/index.live.php?r=add" > /dev/null
           sleep 65
 
-      - name: Configure SSH
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+
+      - name: Trust the remote host key
         run: |
           mkdir -p ~/.ssh
-          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
           ssh-keyscan "${{ secrets.DEPLOY_SSH_HOST }}" >> ~/.ssh/known_hosts
 
       - name: Rsync to o2switch
@@ -67,9 +69,4 @@ jobs:
             --exclude '.git' --exclude '.env' --exclude '.env.deploy*' --exclude 'docker' \
             --exclude '**/node_modules' --exclude '.DS_Store' --exclude '.idea' --exclude '.vscode' \
             --exclude 'web/app/uploads' --exclude 'web/app/cache' \
-            -e "ssh -i ~/.ssh/deploy_key" \
             ./ "${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }}:${{ secrets.DEPLOY_PROJECT_PATH }}/"
-
-      - name: Clean up SSH key
-        if: always()
-        run: rm -f ~/.ssh/deploy_key
