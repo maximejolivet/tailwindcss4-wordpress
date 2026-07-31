@@ -139,19 +139,22 @@ déduire d'un journal rédigé au passé) :
    relatif/https) — à surveiller si un jour un lien absolu est affiché tel
    quel côté utilisateur.
 
-## 7. Page builder ACF Flexible Content — plugins installés (2026-07-31), reste à faire
+## 7. Page builder ACF Flexible Content — fait et vérifié de bout en bout (2026-07-31)
 
 - [x] plugins installés et activés — **avec un correctif de composition
-  découvert en essayant** : le nom de paquet Composer réel sur le mirroir de
-  ce dépôt (`repo.wp-packages.org`, déclaré dans `composer.json`) est
-  `wp-plugin/<slug>`, PAS `wpackagist-plugin/<slug>` comme l'affirme
-  `docs/README.md` (`composer require wpackagist-plugin/secure-custom-fields`
-  échoue avec « package introuvable » ; `composer show wp-plugin/polylang
-  --all` le confirme). `docs/README.md` à corriger séparément.
-- [x] `wp-plugin/advanced-custom-fields-pro` **n'existe pas** sur ce mirroir
+  découvert en essayant** : le nom de paquet Composer réel est
+  `wp-plugin/<slug>`, PAS `wpackagist-plugin/<slug>` comme l'affirmait
+  `docs/README.md` à l'origine (`composer require
+  wpackagist-plugin/secure-custom-fields` échoue avec « package introuvable » ;
+  `composer show wp-plugin/polylang --all` le confirme). Pas une
+  bizarrerie de ce dépôt : depuis Bedrock 1.30, [WP Packages](https://roots.io/wp-composer-is-now-wp-packages/)
+  (`repo.wp-packages.org`, déclaré dans `composer.json`) est la source de
+  paquets **officielle** qui remplace WPackagist. `docs/README.md` et le
+  `README.md` racine corrigés depuis.
+- [x] `wp-plugin/advanced-custom-fields-pro` **n'existe pas** sur WP Packages
   (ACF Pro est un plugin payant, jamais distribué via le SVN wordpress.org
-  que ce mirroir reflète — logique, mais à vérifier avant de supposer que la
-  mission §7 de `WORDPRESS.md` s'installe telle quelle). Installé
+  que cette source reflète — logique, mais à vérifier avant de supposer que
+  la mission §7 de `WORDPRESS.md` s'installe telle quelle). Installé
   `wp-plugin/secure-custom-fields` à la place, l'option de repli déjà
   documentée dans `WORDPRESS.md` §7 pour ce cas — flexible content y est
   bien disponible (Secure Custom Fields = les fonctionnalités cœur d'ACF
@@ -183,7 +186,7 @@ déduire d'un journal rédigé au passé) :
   vers `heading` + `button` (pas de composant `cta-banner` dédié, cf. note
   ci-dessous) — rendu réel sur `/fr/sample-page/` : titre, bouton avec le
   bon lien (`/sample-page`), fond `bg-surface-alt`, aucune erreur PHP/Twig
-- [ ] **bug réel trouvé et corrigé** : le sous-champ `cta_url` déclaré en
+- [x] **bug réel trouvé et corrigé** : le sous-champ `cta_url` déclaré en
   type ACF `url` refuse tout chemin relatif (`/sample-page` → « Le champ
   doit contenir une URL valide », échec de sauvegarde) — ACF valide un
   format d'URL absolue stricte. Corrigé en passant `cta_url` (hero,
@@ -277,25 +280,21 @@ mentionné ici pour ne pas le confondre plus tard avec une régression.
 - [ ] job GitHub Actions : `composer install`, `npm ci`, `composer lint`,
   `composer test`, `npm run build`, budget CSS gzippé
 
-## Points de vigilance connus (à confirmer à l'exécution, pas des bugs déjà rencontrés)
+## Points de vigilance — résolus ou encore ouverts
 
-Ces points sont des risques documentés par le comportement connu des outils
-concernés (Timber, ACF, Polylang) — à vérifier réellement une fois
-implémentés, pas à recopier comme acquis :
-
-- **ACF Flexible Content + Polylang** : la synchronisation par champ
-  (`Copier` vs `Traduisible`) se règle par groupe de champs dans l'écran
-  Polylang, pas par layout individuel — si un layout partage un sous-champ
-  nom avec un autre (ex. `variant` réutilisé dans plusieurs layouts), le
-  réglage de synchronisation s'applique globalement à ce nom de champ ; à
-  vérifier que ça ne force pas une traduction/copie non voulue sur un des
-  layouts.
-- **`get_field()` dans Twig via Timber** : Timber expose les champs ACF via
-  `post.meta('sections')` ou un objet `fields` selon la version/config
-  ACF-Timber-integration ; à figer dans le premier composant qui consomme
-  un layout plutôt que de supposer la syntaxe exacte utilisée dans
-  `WORDPRESS.md` (§7c, à titre d'exemple).
-- **`{% include ... only %}` et fonctions Twig custom** : `only` restreint
+- **RÉSOLU** — ~~ACF Flexible Content + Polylang : synchronisation par
+  champ~~ : en pratique, aucun réglage de synchronisation par champ n'a été
+  nécessaire. Polylang copie toute la structure `sections` telle quelle **au
+  moment de la création** de la traduction (comportement gratuit natif,
+  cf. §7/§8) ; au-delà, FR et EN sont des postmeta indépendants — pas de
+  synchronisation permanente par champ à gérer, donc pas de risque de
+  collision entre layouts partageant un même nom de sous-champ (`variant`,
+  etc.) dans ce modèle.
+- **RÉSOLU** — ~~`get_field()` dans Twig via Timber~~ : confirmé,
+  `post.meta('sections')` expose bien la structure ACF Flexible Content
+  imbriquée telle quelle (`acf_fc_layout` à chaque niveau), cf. §7.
+- **Encore ouvert** — `{% include ... only %}` et fonctions Twig custom :
+  `only` restreint
   le contexte de *variables*, pas les fonctions/filtres enregistrés
   globalement (ex. une éventuelle fonction `__()` exposée au Twig pour
   Polylang, §8) — comportement documenté par Twig, pas encore vérifié

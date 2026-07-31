@@ -1,6 +1,6 @@
 # Commandes Docker
 
-> Pour le thème custom (Timber v2 + Tailwind CSS 4 + Vite), voir [`docs/theme.md`](theme.md).
+> Pour le thème custom (Timber v2 + Tailwind CSS 4 + Vite, composants, page builder ACF, multilingue Polylang), voir [`docs/theme.md`](theme.md). Pour le déploiement en production (o2switch), voir [`docs/deploy.md`](deploy.md).
 
 Environnement de développement local basé sur `docker/docker-compose.yml` (services : `traefik`, `php`, `database`, `node`, `phpmyadmin`, `mailhog`, `dockhand`), pour un projet WordPress [Bedrock](https://roots.io/bedrock/) (racine du repo = racine Bedrock : `composer.json`, `config/`, `web/wp` pour le cœur WordPress, `web/app` pour thèmes/plugins/uploads).
 
@@ -84,7 +84,7 @@ Le fichier `.env` (racine du repo, non commité, à copier depuis `.env.example`
 Points d'attention :
 - `DB_HOST` doit valoir `database` (nom du service MariaDB), pas `localhost`.
 - `WP_HOME`/`WP_SITEURL` doivent correspondre à l'URL Traefik (`https://tailwind-wordpress.localhost`).
-- Les plugins/thèmes se gèrent via Composer, pas depuis l'admin WordPress : `$COMPOSE exec php composer require wp-plugin/<slug>` (le mirroir Composer de ce dépôt, `repo.wp-packages.org` déclaré dans `composer.json`, nomme les paquets `wp-plugin/<slug>` et `wp-theme/<slug>` — pas `wpackagist-plugin/<slug>`/`wpackagist-theme/<slug>` comme sur le wpackagist.org public ; vérifié avec `composer show wp-plugin/polylang --all`).
+- Les plugins/thèmes se gèrent via Composer, pas depuis l'admin WordPress : `$COMPOSE exec php composer require wp-plugin/<slug>`. Depuis Bedrock 1.30, [WP Packages](https://roots.io/wp-composer-is-now-wp-packages/) (`repo.wp-packages.org`, déclaré dans `composer.json`) est la source de paquets **officielle**, en remplacement de WPackagist — les paquets se nomment `wp-plugin/<slug>` et `wp-theme/<slug>`, pas `wpackagist-plugin/<slug>`/`wpackagist-theme/<slug>` (ancienne convention) ; vérifié avec `composer show wp-plugin/polylang --all`.
 
 ## URLs locales (via Traefik)
 
@@ -103,7 +103,7 @@ Points d'attention :
 | traefik | traefik:v3.5 | Reverse proxy HTTPS local |
 | php | build `docker/apache` | Apache + mod_php + Composer + WP-CLI pour WordPress (Bedrock) |
 | database | mariadb:11 | Base de données |
-| node | node:22 | Serveur de dev Vite |
+| node | node:24 | Serveur de dev Vite |
 | phpmyadmin | phpmyadmin:5 | Interface d'admin MySQL |
 | mailhog | mailhog/mailhog:v1.0.1 | Capture des emails sortants |
 | dockhand | fnsys/dockhand:latest | Interface web de gestion Docker ([dockhand.pro](https://dockhand.pro/)) |

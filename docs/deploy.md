@@ -14,11 +14,11 @@ le `vendor/` de dev (Pint, Pest) sur la machine du développeur.
 
 1. **Document root du sous-domaine** : cPanel > Domaines/Sous-domaines >
    `wordpress.jolivetmaxime.fr` > modifier le document root vers
-   `/home/joma2966/repositories/tailwindcss4-wordpress/web` (le `web/` de
+   `/home/{{user}}/repositories/tailwindcss4-wordpress/web` (le `web/` de
    Bedrock — **pas** `web/wp`, qui n'est que le cœur WordPress installé par
    Composer, sans le bootstrap Bedrock ni le `.htaccess`).
-2. **Base de données MySQL** : déjà créée (`joma2966_wordpress` /
-   `joma2966_maxime`, cf. `.env.deploy`).
+2. **Base de données MySQL** : déjà créée (`{{user}}_wordpress` /
+   `{{user}}_maxime`, cf. `.env.deploy`).
 3. **`.env` de production** : n'existe que sur le serveur, jamais versionné,
    jamais généré par le CI. Le générer une fois avec `make deploy-env`
    (utilise les valeurs de `.env.deploy`, génère des salts WordPress
@@ -70,8 +70,8 @@ variables > Actions) — jamais en clair dans le chat :
 |---|---|
 | `DEPLOY_SSH_KEY` | Clé privée SSH **dédiée** au déploiement (pas la clé perso) |
 | `DEPLOY_SSH_HOST` | `loris.o2switch.net` |
-| `DEPLOY_SSH_USER` | `joma2966` |
-| `DEPLOY_PROJECT_PATH` | `/home/joma2966/repositories/tailwindcss4-wordpress` |
+| `DEPLOY_SSH_USER` | `{{user}}` |
+| `DEPLOY_PROJECT_PATH` | `/home/{{user}}/repositories/tailwindcss4-wordpress` |
 | `DEPLOY_CPANEL_PASSWORD` | Mot de passe cPanel — **uniquement** pour l'API de whitelist SSH (port 2083), sans rapport avec la clé SSH |
 
 La clé publique correspondant à `DEPLOY_SSH_KEY` doit être ajoutée aux
@@ -81,14 +81,43 @@ Importer une clé) — génération suggérée :
 
 ## 4. Premier déploiement — checklist
 
-- [ ] Document root du sous-domaine pointé sur `.../web` (§1)
-- [ ] `.env` généré et copié sur le serveur (`make deploy-env`)
-- [ ] Premier `make deploy` (ou push sur `main`) réussi
-- [ ] `make deploy-permalinks` (ou visiter *Réglages > Permaliens* et
-  cliquer Enregistrer) pour que WordPress écrive `web/.htaccess` — ce
-  fichier n'est pas versionné (cf. `.gitignore`), WordPress doit le
-  générer lui-même au moins une fois sur le serveur
-- [ ] Vérifier `https://wordpress.jolivetmaxime.fr/` en HTTPS sans erreur
+- [x] Document root du sous-domaine pointé sur `.../web` (§1)
+- [x] `.env` généré et copié sur le serveur (`make deploy-env`)
+- [x] Premier déploiement réussi (push sur `main`, workflow `Deploy` vert)
+- [x] `make deploy-permalinks` exécuté (pas d'erreur)
+- [x] `https://wordpress.jolivetmaxime.fr/` vérifié en HTTPS — WordPress
+  fonctionne
+
+Pipeline vérifié de bout en bout le 2026-07-31.
+
+## 5. Ennuis réels rencontrés et corrigés (à ne pas refaire)
+
+1. **Clé SSH invalide côté runner** (`error in libcrypto` au chargement) —
+   la clé initialement utilisée pour `DEPLOY_SSH_KEY` était en fait une
+   ancienne clé DSA (`id_dsa`), algorithme désactivé par défaut sur les
+   OpenSSH récents, avec en plus des permissions trop ouvertes
+   (`0644`) qui la faisaient rejeter même en local. Corrigé en générant une
+   clé **ed25519** dédiée (`ssh-keygen -t ed25519 -f deploy_key -N ""`) et
+   en remplaçant l'écriture manuelle du fichier de clé (`printf ... > ~/.ssh/deploy_key`)
+   par `webfactory/ssh-agent`, plus robuste pour charger un secret
+   multi-lignes.
+2. **`ssh-keyscan` qui timeout sans aucun message** — en fait la connexion
+   SSH était bloquée par la liste blanche IP d'o2switch : l'appel API de
+   whitelisting retournait `HTTP 200` mais avec
+   `{"success":false,"message":"Vous avez atteint la limite d'exceptions
+   autorisées."}` — le nombre d'IP whitelistées a un plafond, et comme
+   chaque run GitHub Actions a une IP différente sans jamais nettoyer les
+   anciennes, le quota finissait par être atteint. Le script de
+   suppression automatique des anciennes entrées (repris du gist) n'a pas
+   fonctionné du premier coup (format HTML de la page de whitelist
+   différent de celui du gist d'origine, daté de 2024) — nettoyage fait
+   manuellement une fois via cPanel en attendant d'ajuster le pattern
+   d'extraction.
+3. **`Permission denied (publickey...)` au rsync** — la clé publique avait
+   été **importée** dans cPanel (Accès SSH > Gérer les clés SSH) mais pas
+   **autorisée** (case à part, facile à manquer) : importer une clé SSH ne
+   suffit pas à cPanel, il faut explicitement l'autoriser avant qu'elle
+   fonctionne pour l'authentification.
 
 ## Fichiers concernés
 

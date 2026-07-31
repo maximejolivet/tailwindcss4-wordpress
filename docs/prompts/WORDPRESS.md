@@ -108,10 +108,11 @@ si budget contraint — flexible content y est disponible depuis son passage
 en gratuit ; c'est d'ailleurs la seule option installable via Composer sans
 clé de licence, ACF Pro n'étant jamais distribué sur le SVN wordpress.org),
 `polylang` (`polylang-pro` si synchronisation de champs avancée nécessaire).
-Nom de paquet réel sur le mirroir Composer de ce dépôt
-(`repo.wp-packages.org`, cf. `composer.json`) : **`wp-plugin/<slug>`**, pas
-`wpackagist-plugin/<slug>` (confirmé par `composer show wp-plugin/polylang
---all` — `docs/README.md` mentionne `wpackagist-plugin/<slug>` par erreur).
+Nom de paquet réel : **`wp-plugin/<slug>`**, pas `wpackagist-plugin/<slug>` —
+depuis Bedrock 1.30, [WP Packages](https://roots.io/wp-composer-is-now-wp-packages/)
+(`repo.wp-packages.org`, cf. `composer.json`) est la source de paquets
+**officielle** qui remplace WPackagist, pas une convention propre à ce
+dépôt (confirmé par `composer show wp-plugin/polylang --all`).
 
 ### a. Architecture de traduction — SYMÉTRIQUE, non négociable
 - chaque traduction Polylang d'un post est un post WordPress distinct (lié

@@ -18,7 +18,7 @@ Le thème est installé en local (pas via Composer/wpackagist comme `twentytwent
 ```
 web/app/themes/custom/tailwind/
 ├── style.css                  # En-tête WordPress obligatoire (métadonnées uniquement, pas de styles)
-├── functions.php              # Bootstrap : Timber::init(), instancie Site, charge inc/vite.php
+├── functions.php              # Bootstrap : Timber::init(), instancie Site, charge inc/vite.php et inc/acf-fields.php
 ├── index.php                  # Template générique (archives, blog)
 ├── front-page.php             # Page d'accueil statique
 ├── page.php                   # Pages
@@ -27,20 +27,80 @@ web/app/themes/custom/tailwind/
 ├── src/
 │   └── Site.php               # App\Theme\Site extends Timber\Site : theme supports, menus, contexte Twig
 ├── inc/
-│   └── vite.php                # Bascule dev (HMR) / prod (manifest) pour les assets
+│   ├── vite.php                # Bascule dev (HMR) / prod (manifest) pour les assets
+│   └── acf-fields.php          # Champ Flexible Content "sections" (page builder ACF/SCF), voir §Composants
 ├── views/
 │   ├── layouts/base.twig      # Layout HTML de base (head, header, footer, wp_head/wp_footer)
 │   ├── partials/              # head.twig, menu.twig (récursif), footer.twig
+│   ├── components/            # Composants Twig réutilisables (atoms/molecules/organisms), voir §Composants
 │   └── templates/             # index.twig, front-page.twig, page.twig, single.twig, 404.twig
 ├── assets/
-│   ├── styles/app.css         # `@import "tailwindcss"` + `@source` + `@plugin` typography
-│   ├── scripts/app.js         # Point d'entrée JS, importe app.css
-│   ├── images/, fonts/        # Vides (`.gitkeep`), à utiliser au besoin
+│   ├── styles/app.css         # `@import "tailwindcss"` + `@theme` (tokens) + `@source` + `@plugin` typography
+│   ├── scripts/app.js         # Point d'entrée JS (vanilla), importe app.css
+│   ├── images/sprite.svg      # Sprite SVG consommé par le composant `icon`
+│   └── fonts/                 # Vide (`.gitkeep`), à utiliser au besoin
 ├── package.json
 └── vite.config.js
 ```
 
 `dist/` (build de prod) et `node_modules/` sont générés, non versionnés (voir `.gitignore` racine).
+
+## Composants Twig (`views/components/`)
+
+Bibliothèque de composants réutilisables, organisée en `01-atoms/`,
+`02-molecules/`, `03-organisms/` (un dossier par composant : `*.twig` +
+`README.md` avec exemple d'usage réel) :
+
+| Composant | Type | Rôle |
+|---|---|---|
+| `button` | atom | `<a>`/`<button>`, variants primary/secondary/ghost, sizes sm/md/lg |
+| `heading` | atom | niveau sémantique (`<h1>`-`<h6>`) découplé de la taille visuelle |
+| `badge` | atom | indicateur statique (variants neutral/success/warning/danger/info) |
+| `tag` | atom | chip optionnellement supprimable (vanilla JS, `assets/scripts/app.js`) |
+| `icon` | atom | sprite SVG (`assets/images/sprite.svg`), isolé (`sprite_url` en prop explicite) |
+| `card` | molecule | slots image/title/content/footer, variant vertical/horizontal (+ `reverse`) |
+| `accordion-item` | molecule | `<details>/<summary>` natif, sans JS |
+| `hero` | organism | bannière (titre/sous-titre/média/CTA), compose `heading` + `button` |
+| `cards-grid` | organism | grille 2/3/4 colonnes de `card` vertical |
+| `accordion` | organism | wrapper `divide-y` d'`accordion-item` |
+| `embed` | organism | contenu tiers brut (iframe, embed réseau social) |
+
+Convention (documentée dans chaque composant, voir aussi
+[`docs/prompts/WORDPRESS.md`](prompts/WORDPRESS.md) §3) :
+- props documentées en commentaire Twig en tête de fichier (pas de schéma
+  validé automatiquement, Twig n'a pas d'équivalent aux Single Directory
+  Components de Drupal)
+- composant sans slot → `{% include '...' with {...} only %}` (isolé,
+  jamais de dépendance implicite à `post`/`site`)
+- composant à slots → `{% embed '...' %}` **sans** `only` sur l'`embed`
+  lui-même (le contenu des `{% block %}` doit garder accès à la portée de
+  la page appelante) ; chaque `{% include %}` *à l'intérieur* d'un slot
+  garde en revanche son propre `only`
+
+## Page builder (ACF Flexible Content)
+
+`inc/acf-fields.php` enregistre en PHP (`acf_add_local_field_group()`, pas
+via l'UI + export Local JSON — plus rapide et fiable à faire évoluer) un
+champ Flexible Content `sections` sur le post type `page` :
+- premier niveau : layouts `hero` (max 1) et `section` uniquement
+- `section` contient `columns` (1/2/3) et un flexible content imbriqué
+  `content` avec `text_media`, `cards_grid`, `cta_banner`, `accordion`,
+  `embed`
+
+`views/templates/page.twig` fait le mapping pur layout ACF → composant Twig
+(zéro HTML de structure en dehors de la grille de `section`) ; voir
+[`docs/prompts/WORDPRESS.md`](prompts/WORDPRESS.md) §7 pour le détail complet
+et [`docs/prompts/WORDPRESS-PROCESS.md`](prompts/WORDPRESS-PROCESS.md) pour
+les bugs réels rencontrés en le construisant.
+
+## Multilingue (Polylang)
+
+FR (défaut) + EN, préfixes `/fr/` et `/en/` symétriques sur les deux
+langues, détection URL uniquement. Voir
+[`docs/prompts/WORDPRESS.md`](prompts/WORDPRESS.md) §8 pour la config et le
+workflow de traduction (la copie de structure `sections` à la création
+d'une traduction est un comportement Polylang gratuit natif, pas besoin de
+Polylang Pro).
 
 ## Timber / Twig
 
@@ -55,6 +115,7 @@ Timber::init();
 
 new Site();          // src/Site.php — active les theme supports, menus, contexte
 require __DIR__ . '/inc/vite.php';
+require __DIR__ . '/inc/acf-fields.php'; // Champ Flexible Content "sections" (ACF/SCF)
 ```
 
 Timber cherche les `.twig` dans le dossier `views/` par défaut (`Timber::$dirname`), donc les chemins passés à `Timber::render()` sont relatifs à `views/` (ex. `templates/page.twig`).
@@ -106,21 +167,39 @@ En plus de ce qu'ajoute `Timber::context()` par défaut (`post`, `posts`, `body_
 
 @source "../../views/**/*.twig";
 @source "../../**/*.php";
+
+@theme {
+    --color-primary: oklch(0.55 0.22 265);
+    --color-primary-hover: oklch(0.47 0.22 265);
+    /* ... surface/text/border/success/warning/danger/info, radius, spacing */
+}
 ```
 
-Tailwind CSS 4 utilise une configuration **CSS-first** : pas de `tailwind.config.js`. Les directives `@source` indiquent explicitement où scanner les classes utilisées (par défaut Tailwind ne regarde que depuis la racine du projet Vite en respectant `.gitignore`, ce qui suffirait probablement mais on le rend explicite). Le plugin `@tailwindcss/typography` fournit les classes `prose`/`prose-neutral` utilisées dans `templates/page.twig`, `single.twig`, `front-page.twig` pour le contenu WYSIWYG.
+Tailwind CSS 4 utilise une configuration **CSS-first** : pas de `tailwind.config.js`. Les directives `@source` indiquent explicitement où scanner les classes utilisées (par défaut Tailwind ne regarde que depuis la racine du projet Vite en respectant `.gitignore`, ce qui suffirait probablement mais on le rend explicite) — `views/**/*.twig` couvre aussi `views/components/`. Le bloc `@theme` définit les tokens sémantiques (couleurs, radius, spacing) : **seul point de personnalisation** entre projets basés sur ce thème, aucune valeur arbitraire `[...]` dans les composants sauf justification en commentaire. Le plugin `@tailwindcss/typography` fournit les classes `prose`/`prose-neutral` utilisées pour le contenu WYSIWYG (post content, wysiwyg ACF).
 
-Les diagnostics IDE du type *"Unknown at rule @plugin/@source"* sont normaux : le serveur de langage CSS ne connaît pas encore ces at-rules Tailwind v4, ce n'est pas une erreur fonctionnelle.
+Les diagnostics IDE du type *"Unknown at rule @plugin/@source/@theme"* sont normaux : le serveur de langage CSS ne connaît pas encore ces at-rules Tailwind v4, ce n'est pas une erreur fonctionnelle.
 
 ### JS (`assets/scripts/app.js`)
 
-Point d'entrée unique, importe le CSS :
+Point d'entrée unique, importe le CSS et gère les interactions vanilla
+(pas de framework) :
 
 ```js
 import '../styles/app.css';
+
+document.addEventListener('click', (event) => {
+    const removeButton = event.target.closest('[data-tag-remove]');
+    if (!removeButton) return;
+    removeButton.closest('[data-tag]')?.remove();
+});
 ```
 
-Pour ajouter du JS, l'écrire dans ce fichier (ou l'importer depuis un autre module) — le point d'entrée Vite (`vite.config.js` → `build.rollupOptions.input`) est unique (`assets/scripts/app.js`).
+Le listener délégué ci-dessus gère le bouton de suppression du composant
+`tag` (`views/components/01-atoms/tag/`) — un seul listener global plutôt
+qu'une dépendance JS par composant. Pour ajouter du JS, l'écrire dans ce
+fichier (ou l'importer depuis un autre module) — le point d'entrée Vite
+(`vite.config.js` → `build.rollupOptions.input`) est unique
+(`assets/scripts/app.js`).
 
 ### Build de production (`make vite-build`)
 
@@ -248,3 +327,9 @@ Après ajout d'une nouvelle classe dans `src/`, régénérer l'autoloader si bes
 make shell
 composer dump-autoload
 ```
+
+## Voir aussi
+
+- [`docs/prompts/WORDPRESS.md`](prompts/WORDPRESS.md) — mission complète (composants, page builder, multilingue)
+- [`docs/prompts/WORDPRESS-PROCESS.md`](prompts/WORDPRESS-PROCESS.md) — journal réel d'exécution (bugs trouvés en testant, pas en relisant le code)
+- [`docs/deploy.md`](deploy.md) — déploiement o2switch (manuel et CI GitHub Actions)

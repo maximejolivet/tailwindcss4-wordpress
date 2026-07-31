@@ -1,18 +1,18 @@
-# Déploie ce site Bedrock vers o2switch via SSH. o2switch restreint l'accès
-# SSH par liste blanche d'IP (cPanel > Sécurité > Accès SSH) : les runners
-# GitHub Actions changent d'IP à chaque exécution, donc ce workflow
-# whiteliste dynamiquement l'IP du runner via l'API cPanel avant de tenter le
-# SSH (voir https://gist.github.com/webaxones/54a9aee13bd9152e900ef30a0fcef3ed).
+# Deploys this Bedrock site to o2switch over SSH. o2switch restricts SSH
+# access with an IP whitelist (cPanel > Security > SSH Access): GitHub
+# Actions runners get a different IP on every run, so this workflow
+# dynamically whitelists the runner's IP via the cPanel API before
+# attempting SSH (see https://gist.github.com/webaxones/54a9aee13bd9152e900ef30a0fcef3ed).
 #
-# Secrets requis (Settings > Secrets and variables > Actions) :
-# - DEPLOY_SSH_KEY          clé privée SSH (dédiée au déploiement, pas la clé perso)
+# Required secrets (Settings > Secrets and variables > Actions):
+# - DEPLOY_SSH_KEY          SSH private key (dedicated to deployment, not a personal key)
 # - DEPLOY_SSH_HOST         loris.o2switch.net
-# - DEPLOY_SSH_USER         joma2966 (identifiant cPanel)
-# - DEPLOY_PROJECT_PATH     /home/joma2966/repositories/tailwindcss4-wordpress
-# - DEPLOY_CPANEL_PASSWORD  mot de passe cPanel — UNIQUEMENT pour l'API de
-#                           whitelist SSH (port 2083), sans rapport avec la clé
-#                           SSH ci-dessus. À ajouter toi-même via `gh secret
-#                           set`, jamais collé en clair dans le chat.
+# - DEPLOY_SSH_USER         {{user}} (cPanel username)
+# - DEPLOY_PROJECT_PATH     /home/{{user}}/repositories/tailwindcss4-wordpress
+# - DEPLOY_CPANEL_PASSWORD  cPanel password — ONLY used for the SSH whitelist
+#                           API (port 2083), unrelated to the SSH key above.
+#                           Add it yourself via `gh secret set`, never paste
+#                           it in chat.
 
 name: Deploy
 
@@ -27,6 +27,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # vendor/ is built here (on the runner) rather than on the server:
+      # a fresh checkout has no dev vendor/ to accidentally wipe, unlike a
+      # developer's machine running `composer install --no-dev` locally
+      # (see docs/deploy.md §3 for why `make deploy` does the opposite).
       - name: Install PHP dependencies
         uses: shivammathur/setup-php@v2
         with:
@@ -45,6 +49,11 @@ jobs:
         id: ip
         uses: haythem/public-ip@v1.3
 
+      # o2switch caps the number of whitelisted IPs. Since every run adds a
+      # new one and nothing removes old ones on its own, the quota fills up
+      # after a few runs and blocks SSH entirely (API replies HTTP 200 with
+      # {"success":false,"message":"...limite d'exceptions autorisées..."}).
+      # So: sweep out existing entries first, then add the current IP.
       - name: Whitelist runner IP for SSH (o2switch)
         run: |
           CPANEL="https://${{ secrets.DEPLOY_SSH_USER }}:${{ secrets.DEPLOY_CPANEL_PASSWORD }}@${{ secrets.DEPLOY_SSH_HOST }}:2083"
@@ -71,6 +80,8 @@ jobs:
           curl -sS "$CPANEL/frontend/o2switch/o2switch-ssh-whitelist/index.live.php" | grep -oE '[0-9]{1,3}(\.[0-9]{1,3}){3}' | sort -u || true
           sleep 65
 
+      # Isolates network-level reachability from SSH-specific failures
+      # (auth, host key, etc.) when diagnosing a broken run.
       - name: Raw TCP connectivity check (before ssh-agent, no key needed)
         run: |
           echo "Testing TCP connect to ${{ secrets.DEPLOY_SSH_HOST }}:22 ..."
@@ -78,6 +89,12 @@ jobs:
             && echo "TCP connect OK" \
             || echo "TCP connect FAILED (still blocked, or wrong host/port)"
 
+      # Loads DEPLOY_SSH_KEY into an ssh-agent rather than writing it to a
+      # file by hand: a raw `printf '%s' "$SECRET" > keyfile` approach once
+      # produced "error in libcrypto" on a perfectly valid key, apparently
+      # from subtly mangling the multi-line PEM content. webfactory/ssh-agent
+      # loads the secret directly via `ssh-add -`, which doesn't have that
+      # problem.
       - uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
@@ -87,6 +104,9 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -v "${{ secrets.DEPLOY_SSH_HOST }}" >> ~/.ssh/known_hosts
 
+      # web/app/uploads and web/app/cache are excluded, not just gitignored:
+      # --delete would otherwise wipe live media/cache on the server since
+      # neither exists in this checkout.
       - name: Rsync to o2switch
         run: |
           rsync -avz --delete \
