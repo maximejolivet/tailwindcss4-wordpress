@@ -65,13 +65,10 @@ needed day to day; on a CI runner (fresh checkout every time), that risk
 doesn't exist.
 
 The GitHub Actions runner gets a different IP on every run: the workflow
-clears and re-adds it to o2switch's SSH whitelist via the documented
-[`SshWhitelist` UAPI module](https://faq.o2switch.fr/cpanel/outils/exception-parefeu/)
-(`remove_all`, `add`, `list`, port 2083) before attempting the SSH
-connection, authenticated with a
-[cPanel API token](https://faq.o2switch.fr/cpanel/securite/token-api-cpanel/)
-(`Authorization: cpanel username:TOKEN` header) rather than the account
-password.
+dynamically adds it to o2switch's SSH whitelist via the cPanel API (port
+2083) before attempting the SSH connection — a pattern taken from [this
+gist](https://gist.github.com/webaxones/54a9aee13bd9152e900ef30a0fcef3ed),
+specific to o2switch/cPanel hosting with IP-restricted SSH.
 
 ### Required GitHub secrets
 
@@ -84,7 +81,7 @@ variables > Actions) — never paste them in chat:
 | `DEPLOY_SSH_HOST` | `loris.o2switch.net` |
 | `DEPLOY_SSH_USER` | `{{user}}` |
 | `DEPLOY_PROJECT_PATH` | `/home/{{user}}/repositories/tailwindcss4-wordpress` |
-| `DEPLOY_CPANEL_TOKEN` | cPanel API token (cPanel > Security > Manage API Tokens) — **only** for the SSH whitelist UAPI (port 2083), unrelated to the SSH key |
+| `DEPLOY_CPANEL_PASSWORD` | cPanel password — **only** for the SSH whitelist API (port 2083), unrelated to the SSH key |
 
 The public key matching `DEPLOY_SSH_KEY` must be added to the authorized
 keys on o2switch (cPanel > SSH Access > Manage SSH Keys > Import Key) —
@@ -114,16 +111,15 @@ Pipeline verified end to end on 2026-07-31.
    secret.
 2. **`ssh-keyscan` timing out with no message at all** — the SSH connection
    was actually being blocked by o2switch's IP whitelist: the whitelisting
-   call returned `HTTP 200` but with
+   API call returned `HTTP 200` but with
    `{"success":false,"message":"Vous avez atteint la limite d'exceptions
    autorisées."}` — the number of whitelisted IPs has a cap, and since
    every GitHub Actions run has a different IP and nothing ever cleaned up
-   old ones, the quota eventually got hit. Earlier attempts tried scraping
-   the whitelist UI page's HTML for `remove` links (unreliable — its format
-   didn't match what the regex expected), then a partial add-then-remove-one
-   retry loop. Fixed for good by switching to the documented `SshWhitelist`
-   UAPI module (`remove_all` + `add`, token auth) instead of the UI page:
-   clears and re-adds the whitelist every run, no HTML parsing involved.
+   old ones, the quota eventually got hit. The script that auto-removes old
+   entries (taken from the gist) didn't work on the first try (the
+   whitelist page's HTML format differs from the original 2024 gist) —
+   cleaned up manually once via cPanel while waiting to adjust the
+   extraction pattern.
 3. **`Permission denied (publickey...)` on rsync** — the public key had
    been **imported** into cPanel (SSH Access > Manage SSH Keys) but not
    **authorized** (a separate checkbox, easy to miss): importing an SSH key
@@ -209,13 +205,10 @@ les dépendances de dev (Pint, Pest) nécessaires au quotidien ; sur un
 runner CI (checkout neuf à chaque fois), ce risque n'existe pas.
 
 Le runner GitHub Actions a une IP différente à chaque exécution : le
-workflow vide puis réajoute la liste blanche SSH d'o2switch via le
-[module UAPI `SshWhitelist`](https://faq.o2switch.fr/cpanel/outils/exception-parefeu/)
-documenté (`remove_all`, `add`, `list`, port 2083) avant de tenter la
-connexion SSH, authentifié avec un
-[token API cPanel](https://faq.o2switch.fr/cpanel/securite/token-api-cpanel/)
-(en-tête `Authorization: cpanel username:TOKEN`) plutôt qu'avec le mot de
-passe du compte.
+workflow l'ajoute dynamiquement à la liste blanche SSH d'o2switch via
+l'API cPanel (port 2083) avant de tenter la connexion SSH — pattern repris
+de [ce gist](https://gist.github.com/webaxones/54a9aee13bd9152e900ef30a0fcef3ed),
+spécifique aux hébergements o2switch/cPanel avec restriction SSH par IP.
 
 ### Secrets GitHub requis
 
@@ -228,7 +221,7 @@ variables > Actions) — jamais en clair dans le chat :
 | `DEPLOY_SSH_HOST` | `loris.o2switch.net` |
 | `DEPLOY_SSH_USER` | `{{user}}` |
 | `DEPLOY_PROJECT_PATH` | `/home/{{user}}/repositories/tailwindcss4-wordpress` |
-| `DEPLOY_CPANEL_TOKEN` | Token API cPanel (cPanel > Sécurité > Gérer les tokens API) — **uniquement** pour l'UAPI de whitelist SSH (port 2083), sans rapport avec la clé SSH |
+| `DEPLOY_CPANEL_PASSWORD` | Mot de passe cPanel — **uniquement** pour l'API de whitelist SSH (port 2083), sans rapport avec la clé SSH |
 
 La clé publique correspondant à `DEPLOY_SSH_KEY` doit être ajoutée aux
 clés autorisées côté o2switch (cPanel > Accès SSH > Gérer les clés SSH >
@@ -258,19 +251,17 @@ Pipeline vérifié de bout en bout le 2026-07-31.
    par `webfactory/ssh-agent`, plus robuste pour charger un secret
    multi-lignes.
 2. **`ssh-keyscan` qui timeout sans aucun message** — en fait la connexion
-   SSH était bloquée par la liste blanche IP d'o2switch : l'appel
-   retournait `HTTP 200` mais avec
+   SSH était bloquée par la liste blanche IP d'o2switch : l'appel API de
+   whitelisting retournait `HTTP 200` mais avec
    `{"success":false,"message":"Vous avez atteint la limite d'exceptions
    autorisées."}` — le nombre d'IP whitelistées a un plafond, et comme
    chaque run GitHub Actions a une IP différente sans jamais nettoyer les
-   anciennes, le quota finissait par être atteint. Les tentatives
-   précédentes scrapaient les liens `remove` dans le HTML de la page de
-   whitelist (peu fiable — son format ne correspondait pas à ce que la
-   regex attendait), puis un mécanisme d'ajout-puis-suppression-d'une-entrée
-   en cas d'échec. Corrigé définitivement en passant par le module UAPI
-   documenté `SshWhitelist` (`remove_all` + `add`, auth par token) plutôt
-   que par la page UI : vide et réajoute la whitelist à chaque run, sans
-   aucun parsing HTML.
+   anciennes, le quota finissait par être atteint. Le script de
+   suppression automatique des anciennes entrées (repris du gist) n'a pas
+   fonctionné du premier coup (format HTML de la page de whitelist
+   différent de celui du gist d'origine, daté de 2024) — nettoyage fait
+   manuellement une fois via cPanel en attendant d'ajuster le pattern
+   d'extraction.
 3. **`Permission denied (publickey...)` au rsync** — la clé publique avait
    été **importée** dans cPanel (Accès SSH > Gérer les clés SSH) mais pas
    **autorisée** (case à part, facile à manquer) : importer une clé SSH ne
