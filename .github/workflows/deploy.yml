@@ -48,7 +48,17 @@ jobs:
       - name: Whitelist runner IP for SSH (o2switch)
         run: |
           CPANEL="https://${{ secrets.DEPLOY_SSH_USER }}:${{ secrets.DEPLOY_CPANEL_PASSWORD }}@${{ secrets.DEPLOY_SSH_HOST }}:2083"
-          echo "Adding ${{ steps.ip.outputs.ipv4 }} to the SSH whitelist..."
+
+          echo "--- Removing existing whitelist entries (o2switch caps the number of entries) ---"
+          curl -sS "$CPANEL/frontend/o2switch/o2switch-ssh-whitelist/index.live.php" \
+            | grep -oE 'index\.live\.php\?r=remove&address=[0-9a-zA-Z%.:_-]+' \
+            | sort -u \
+            | while read -r removeLink; do
+                echo "Removing: $removeLink"
+                curl -sS "$CPANEL/frontend/o2switch/o2switch-ssh-whitelist/$removeLink" > /dev/null
+              done
+
+          echo "--- Adding ${{ steps.ip.outputs.ipv4 }} to the SSH whitelist ---"
           http_code=$(curl -sS -o /tmp/whitelist-response.html -w '%{http_code}' -X POST \
             -d 'whitelist[address]=${{ steps.ip.outputs.ipv4 }}' \
             -d 'whitelist[port]=22' \
