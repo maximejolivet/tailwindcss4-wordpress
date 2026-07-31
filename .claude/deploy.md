@@ -115,11 +115,12 @@ Pipeline verified end to end on 2026-07-31.
    `{"success":false,"message":"Vous avez atteint la limite d'exceptions
    autorisées."}` — the number of whitelisted IPs has a cap, and since
    every GitHub Actions run has a different IP and nothing ever cleaned up
-   old ones, the quota eventually got hit. The script that auto-removes old
-   entries (taken from the gist) didn't work on the first try (the
-   whitelist page's HTML format differs from the original 2024 gist) —
-   cleaned up manually once via cPanel while waiting to adjust the
-   extraction pattern.
+   old ones, the quota eventually got hit. First fix attempt swept out
+   *every* whitelist entry on every run before adding the new IP — besides
+   being wasteful, that would also nuke a developer's own manually
+   whitelisted IP (used for `make deploy`). Current behavior: try the add
+   first, and only on a quota error remove one entry (the last one found on
+   the whitelist page) and retry, up to 5 times.
 3. **`Permission denied (publickey...)` on rsync** — the public key had
    been **imported** into cPanel (SSH Access > Manage SSH Keys) but not
    **authorized** (a separate checkbox, easy to miss): importing an SSH key
@@ -256,12 +257,14 @@ Pipeline vérifié de bout en bout le 2026-07-31.
    `{"success":false,"message":"Vous avez atteint la limite d'exceptions
    autorisées."}` — le nombre d'IP whitelistées a un plafond, et comme
    chaque run GitHub Actions a une IP différente sans jamais nettoyer les
-   anciennes, le quota finissait par être atteint. Le script de
-   suppression automatique des anciennes entrées (repris du gist) n'a pas
-   fonctionné du premier coup (format HTML de la page de whitelist
-   différent de celui du gist d'origine, daté de 2024) — nettoyage fait
-   manuellement une fois via cPanel en attendant d'ajuster le pattern
-   d'extraction.
+   anciennes, le quota finissait par être atteint. La première tentative de
+   correction supprimait *toutes* les entrées de la whitelist à chaque run
+   avant d'ajouter la nouvelle IP — en plus d'être inutile, ça aurait aussi
+   supprimé l'IP whitelistée manuellement par un développeur (utilisée pour
+   `make deploy`). Comportement actuel : tenter l'ajout d'abord, et
+   seulement en cas d'erreur de quota supprimer une seule entrée (la
+   dernière trouvée sur la page de whitelist) puis réessayer, jusqu'à 5
+   fois.
 3. **`Permission denied (publickey...)` au rsync** — la clé publique avait
    été **importée** dans cPanel (Accès SSH > Gérer les clés SSH) mais pas
    **autorisée** (case à part, facile à manquer) : importer une clé SSH ne

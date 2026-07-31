@@ -50,34 +50,60 @@ jobs:
         uses: haythem/public-ip@v1.3
 
       # o2switch caps the number of whitelisted IPs. Since every run adds a
-      # new one and nothing removes old ones on its own, the quota fills up
-      # after a few runs and blocks SSH entirely (API replies HTTP 200 with
+      # new one and nothing removes old ones on its own, the quota eventually
+      # fills up and blocks SSH entirely (API replies HTTP 200 with
       # {"success":false,"message":"...limite d'exceptions autorisées..."}).
-      # So: sweep out existing entries first, then add the current IP.
+      # Rather than sweeping every entry on every run (which would also nuke
+      # a developer's own manually-whitelisted IP used for `make deploy`),
+      # try the add first and only remove one entry — the last one found on
+      # the whitelist page — if it fails on the quota, then retry.
       - name: Whitelist runner IP for SSH (o2switch)
         run: |
           CPANEL="https://${{ secrets.DEPLOY_SSH_USER }}:${{ secrets.DEPLOY_CPANEL_PASSWORD }}@${{ secrets.DEPLOY_SSH_HOST }}:2083"
+          IP="${{ steps.ip.outputs.ipv4 }}"
 
-          echo "--- Removing existing whitelist entries (o2switch caps the number of entries) ---"
-          curl -sS "$CPANEL/frontend/o2switch/o2switch-ssh-whitelist/index.live.php" \
-            | grep -oE 'index\.live\.php\?r=remove&address=[0-9a-zA-Z%.:_-]+' \
-            | sort -u \
-            | while read -r removeLink; do
-                echo "Removing: $removeLink"
-                curl -sS "$CPANEL/frontend/o2switch/o2switch-ssh-whitelist/$removeLink" > /dev/null
-              done
+          add_ip() {
+            curl -sS -o /tmp/whitelist-response.html -w '%{http_code}' -X POST \
+              -d "whitelist[address]=$IP" \
+              -d 'whitelist[port]=22' \
+              "$CPANEL/frontend/o2switch/o2switch-ssh-whitelist/index.live.php?r=add"
+          }
 
-          echo "--- Adding ${{ steps.ip.outputs.ipv4 }} to the SSH whitelist ---"
-          http_code=$(curl -sS -o /tmp/whitelist-response.html -w '%{http_code}' -X POST \
-            -d 'whitelist[address]=${{ steps.ip.outputs.ipv4 }}' \
-            -d 'whitelist[port]=22' \
-            "$CPANEL/frontend/o2switch/o2switch-ssh-whitelist/index.live.php?r=add")
+          remove_last_entry() {
+            removeLink=$(curl -sS "$CPANEL/frontend/o2switch/o2switch-ssh-whitelist/index.live.php" \
+              | grep -oE 'index\.live\.php\?r=remove&address=[0-9a-zA-Z%.:_-]+' \
+              | awk '!seen[$0]++' \
+              | tail -n1)
+            if [ -n "$removeLink" ]; then
+              echo "Whitelist full: removing last entry ($removeLink)"
+              curl -sS "$CPANEL/frontend/o2switch/o2switch-ssh-whitelist/$removeLink" > /dev/null
+              return 0
+            fi
+            echo "Whitelist full but no removable entry found (HTML format may have changed)"
+            return 1
+          }
+
+          echo "--- Adding $IP to the SSH whitelist ---"
+          http_code=$(add_ip)
           echo "HTTP status: $http_code"
-          echo "--- Response body (first 2000 chars) ---"
+
+          attempt=0
+          while grep -q '"success":false' /tmp/whitelist-response.html && [ "$attempt" -lt 5 ]; do
+            attempt=$((attempt + 1))
+            echo "--- Add failed (attempt $attempt) ---"
+            cat /tmp/whitelist-response.html
+            echo ""
+            remove_last_entry || break
+            echo "--- Retrying add of $IP ---"
+            http_code=$(add_ip)
+            echo "HTTP status: $http_code"
+          done
+
+          echo "--- Final response body (first 2000 chars) ---"
           head -c 2000 /tmp/whitelist-response.html
           echo ""
           echo "--- Current whitelist (fetched right after) ---"
-          curl -sS "$CPANEL/frontend/o2switch/o2switch-ssh-whitelist/index.live.php" | grep -oE '[0-9]{1,3}(\.[0-9]{1,3}){3}' | sort -u || true
+          curl -sS "$CPANEL/frontend/o2switch/o2switch-ssh-whitelist/index.live.php" | grep -oE '[0-9]{1,3}(\.[0-9]{1,3}){3}' || true
           sleep 65
 
       # Isolates network-level reachability from SSH-specific failures
