@@ -48,11 +48,25 @@ jobs:
       - name: Whitelist runner IP for SSH (o2switch)
         run: |
           CPANEL="https://${{ secrets.DEPLOY_SSH_USER }}:${{ secrets.DEPLOY_CPANEL_PASSWORD }}@${{ secrets.DEPLOY_SSH_HOST }}:2083"
-          curl -sX POST \
+          echo "Adding ${{ steps.ip.outputs.ipv4 }} to the SSH whitelist..."
+          http_code=$(curl -sS -o /tmp/whitelist-response.html -w '%{http_code}' -X POST \
             -d 'whitelist[address]=${{ steps.ip.outputs.ipv4 }}' \
             -d 'whitelist[port]=22' \
-            "$CPANEL/frontend/o2switch/o2switch-ssh-whitelist/index.live.php?r=add" > /dev/null
+            "$CPANEL/frontend/o2switch/o2switch-ssh-whitelist/index.live.php?r=add")
+          echo "HTTP status: $http_code"
+          echo "--- Response body (first 2000 chars) ---"
+          head -c 2000 /tmp/whitelist-response.html
+          echo ""
+          echo "--- Current whitelist (fetched right after) ---"
+          curl -sS "$CPANEL/frontend/o2switch/o2switch-ssh-whitelist/index.live.php" | grep -oE '[0-9]{1,3}(\.[0-9]{1,3}){3}' | sort -u || true
           sleep 65
+
+      - name: Raw TCP connectivity check (before ssh-agent, no key needed)
+        run: |
+          echo "Testing TCP connect to ${{ secrets.DEPLOY_SSH_HOST }}:22 ..."
+          timeout 10 bash -c 'cat < /dev/null > /dev/tcp/${{ secrets.DEPLOY_SSH_HOST }}/22' \
+            && echo "TCP connect OK" \
+            || echo "TCP connect FAILED (still blocked, or wrong host/port)"
 
       - uses: webfactory/ssh-agent@v0.9.0
         with:
@@ -61,7 +75,7 @@ jobs:
       - name: Trust the remote host key
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan "${{ secrets.DEPLOY_SSH_HOST }}" >> ~/.ssh/known_hosts
+          ssh-keyscan -v "${{ secrets.DEPLOY_SSH_HOST }}" >> ~/.ssh/known_hosts
 
       - name: Rsync to o2switch
         run: |
