@@ -4,8 +4,8 @@ Wrapper `divide-y` d'un ensemble de [`accordion-item`](../../02-molecules/accord
 
 ## Props
 
-| Prop | Type | Défaut | Description |
-|---|---|---|---|
+| Prop    | Type                          | Défaut | Description                  |
+| ------- | ----------------------------- | ------ | ---------------------------- |
 | `items` | array de `{question, answer}` | requis | Un item par question/réponse |
 
 ## Usage

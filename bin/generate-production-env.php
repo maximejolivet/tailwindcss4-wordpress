@@ -1,6 +1,7 @@
 <?php
+
 /**
- * Generates a production .env for a Bedrock deploy (fresh random salts each
+ * Generates a production .env file for a Bedrock deploy (fresh random salts each
  * run — never reuse this to regenerate an existing prod .env, that would log
  * out every session and invalidate auth cookies/nonces).
  *

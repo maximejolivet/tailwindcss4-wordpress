@@ -7,11 +7,11 @@ sidebar, ou un `<h1>` de taille `md` sur une page secondaire).
 
 ## Props
 
-| Prop | Type | Valeurs | Défaut | Description |
-|---|---|---|---|---|
-| `text` | string | — | requis | Contenu du titre |
-| `level` | int | `1`-`6` | `2` | Niveau HTML sémantique |
-| `size` | string | `xs`,`sm`,`md`,`lg`,`xl`,`2xl` | dérivé de `level` | Taille visuelle |
+| Prop    | Type   | Valeurs                        | Défaut            | Description            |
+| ------- | ------ | ------------------------------ | ----------------- | ---------------------- |
+| `text`  | string | —                              | requis            | Contenu du titre       |
+| `level` | int    | `1`-`6`                        | `2`               | Niveau HTML sémantique |
+| `size`  | string | `xs`,`sm`,`md`,`lg`,`xl`,`2xl` | dérivé de `level` | Taille visuelle        |
 
 ## Usage
 

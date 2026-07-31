@@ -11,9 +11,10 @@ const port = 3009;
 
 const certPath = path.join(repoRoot, 'docker/traefik/certs', `${host}.pem`);
 const keyPath = path.join(repoRoot, 'docker/traefik/certs', `${host}-key.pem`);
-const https = fs.existsSync(certPath) && fs.existsSync(keyPath)
-    ? { cert: fs.readFileSync(certPath), key: fs.readFileSync(keyPath) }
-    : true;
+const https =
+    fs.existsSync(certPath) && fs.existsSync(keyPath)
+        ? { cert: fs.readFileSync(certPath), key: fs.readFileSync(keyPath) }
+        : true;
 
 // Twig/PHP changes don't go through Vite's module graph, so trigger a full
 // browser reload for them ourselves.

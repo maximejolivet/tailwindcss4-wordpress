@@ -6,10 +6,10 @@ dépendance JS par composant).
 
 ## Props
 
-| Prop | Type | Défaut | Description |
-|---|---|---|---|
-| `label` | string | requis | Texte du tag |
-| `removable` | bool | `false` | Affiche un bouton de suppression `×` |
+| Prop        | Type   | Défaut  | Description                          |
+| ----------- | ------ | ------- | ------------------------------------ |
+| `label`     | string | requis  | Texte du tag                         |
+| `removable` | bool   | `false` | Affiche un bouton de suppression `×` |
 
 ## Usage
 

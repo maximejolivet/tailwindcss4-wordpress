@@ -1,4 +1,313 @@
-# Journal d'exécution — Composants Twig / Tailwind v4 / ACF Flexible Content
+# 🇬🇧 Execution journal — Twig components / Tailwind v4 / ACF Flexible Content
+
+This document tracks the real state of the project against the
+mission described in [`WORDPRESS.md`](./WORDPRESS.md): Twig components,
+ACF Flexible Content page builder, Polylang multilingual. Unlike
+`DRUPAL-PROCESS.md` (the previous version of this document, which documented
+a Drupal project where the mission had been fully executed and verified),
+**only part 0 below reflects a verified state of the current repo** — the
+rest is an execution plan (backlog), not a journal of work already
+done. Do not present sections 1+ as finished until they have
+actually been implemented and verified (`make start` + `make wp
+ARGS="..."` + real rendering). This repo has no `CLAUDE.md` requiring
+this — it's a deliberate discipline for this specific document, after several
+real bugs found only by rendering (see bugs #1-2 in section 3-6
+below), never by re-reading the code.
+
+## 0. Starting point (verified in the repo as of 2026-07-31)
+
+What already exists, documented in detail in [`theme.md`](../theme.md)
+and [`docker.md`](../docker.md):
+
+- Bedrock scaffold (`composer.json`, `config/`, `web/wp`, `web/app`), PHP
+  ≥ 8.4, Docker Compose (Traefik, PHP/Apache, MariaDB, node, phpMyAdmin,
+  Mailhog, Dockhand)
+- Custom theme `web/app/themes/custom/tailwind`, PSR-4 autoloaded
+  (`App\Theme\`) from the root `composer.json`
+- Timber v2 initialized (`functions.php` → `Timber::init()` +
+  `new Site()`), `src/Site.php`: `theme_supports()` (title-tag,
+  post-thumbnails, `primary` menu, etc.) and `add_to_context()` (adds
+  `site` and `menu` to the Twig context)
+- Existing templates: `views/layouts/base.twig`, `views/partials/`
+  (head, recursive menu, footer), `views/templates/` (`index`,
+  `front-page`, `page`, `single`, `404`) — **none consume a
+  component** yet, HTML is written directly with inline
+  Tailwind classes
+- Working Vite + Tailwind v4 pipeline: `assets/styles/app.css`
+  (`@import "tailwindcss"`, `@plugin "@tailwindcss/typography"`, `@source`
+  on `views/**/*.twig` and `**/*.php`), `assets/scripts/app.js`, dev/prod
+  switch in `inc/vite.php`, HMR with the `phpTwigReload` plugin +
+  `usePolling` (issues fixed, documented in `theme.md`, not to
+  redo here)
+- `composer.json`: `lint` (Pint) and `test` (Pest) scripts already declared,
+  but **no Pest test written**, no GitHub Actions CI
+
+> Update on 2026-07-31: the `@theme` block and the first component
+> (`button`) have been delivered — see §2 and §3-6 below, which replace the
+> two corresponding bullets in this initial list.
+
+What does **not** exist yet (contrary to what a reader might
+infer from a journal written in the past tense):
+
+- `views/components/` only contains `01-atoms/button/` — `02-molecules/`
+  and `03-organisms/` are empty, no other component delivered
+- no ACF or Polylang plugin in `composer.json`
+- no `acf-json/`, no flexible content field, no multilingual
+  config
+- no CI, no ESLint/Prettier configured in the theme
+
+## 1. Build pipeline — to do
+
+- [ ] check whether `views/components/` needs to be added to `@source` in
+  `assets/styles/app.css` once the folder is created (the existing
+  `views/**/*.twig` pattern already covers it if components live under
+  `views/`)
+- [ ] add Prettier + `prettier-plugin-tailwindcss`, ESLint, to the theme's
+  `devDependencies` (`package.json`)
+- [ ] script validating the components' props headers (§3 of
+  `WORDPRESS.md`)
+
+## 2. Design tokens — done (2026-07-31)
+
+- [x] `@theme` block written in `assets/styles/app.css`: `--color-primary(-hover)`,
+  `--color-secondary(-hover)`, `--color-surface(-alt/-inverse)`,
+  `--color-text(-muted/-inverse)`, `--color-border(-strong)`, `--radius-sm/md/lg`,
+  `--spacing-section`
+- [x] `views/layouts/base.twig` migrated to the semantic tokens (`bg-surface
+  text-text`, `border-border`) instead of `bg-white text-gray-900`/`border-gray-200`
+- [ ] the `--color-secondary`/`-success`/`-warning`/`-danger`/`-info` colors
+  still need refining against the client's actual brand guidelines — current
+  values are arbitrary (OKLCH placeholders), to be replaced before going to
+  production
+
+## 3-6. Twig components — 7/7 done (2026-07-31)
+
+- [x] `views/components/01-atoms/`, `02-molecules/`, `03-organisms/` created
+- [x] `button` (`01-atoms/button/`): primary/secondary/ghost variants,
+  sm/md/lg sizes, `url` prop (renders `<a>` or `<button>`), `disabled` prop
+- [x] `heading` (`01-atoms/heading/`): `level` prop (1-6, semantic
+  `<hN>` via `<h{{ level }}>`, valid in Twig) decoupled from `size` (visual),
+  size derived from `level` if `size` is absent
+- [x] `badge` (`01-atoms/badge/`): neutral/success/warning/danger/info variants
+  (required adding the `--color-success/-warning/-danger/-info(-surface)` tokens
+  to `@theme`, absent from the first tokens pass in §2)
+- [x] `tag` (`01-atoms/tag/`): optionally removable chip; DOM removal
+  is a delegated `[data-tag-remove]` listener added in
+  `assets/scripts/app.js` (vanilla, no per-component JS dependency)
+- [x] `icon` (`01-atoms/icon/`): `assets/images/sprite.svg` sprite created
+  (`arrow-right`, `close`, `check` symbols), explicit `sprite_url` prop
+  (the component never reads `site` itself, see bug #1 below)
+- [x] `card` (`02-molecules/card/`): `image`/`title`/`content`/`footer` slots
+  via `{% block %}` + `{% embed %}`, vertical/horizontal variant
+- [x] `hero` (`03-organisms/hero/`): title/subtitle/media/cta, internally
+  composes `heading` and `button` (no markup duplication), centered
+  variant without `media` or 2-column grid with `media` — actually
+  used at the top of `front-page.twig`, verified in the browser
+  (`--spacing-section` generated as `py-section`, confirmed in the compiled
+  CSS via `grep`)
+- [x] `views/templates/front-page.twig` actually consumes all 7
+  components (hero, heading — via hero and via card, badge, tag, button —
+  via hero and via card, icon, card) — verified in the browser, see bugs
+  below
+- [x] `page.twig`, `single.twig` migrated to `heading` (their hardcoded `<h1>`);
+  `text-gray-500` replaced with the `--color-text-muted` token in
+  `single.twig`; verified in the browser on `sample-page` and `hello-world`
+
+### Real bugs found by checking in the browser (not by re-reading code)
+
+1. **`only` on an `{% embed %}` silently breaks nested includes
+   inside its slots.** First pass of `card` used with `{% embed ... with
+   {variant: 'horizontal'} only %}`: the icon placed in the `image` slot
+   (`{% include '.../icon.twig' with {sprite_url: site.theme.link ~ '...'}
+   only %}`) rendered with a truncated `<use href="/assets/images/sprite.svg#check">`
+   (404), instead of the expected absolute URL. Cause: the content of an
+   `embed`'s `{% block %}` runs in the calling page's scope
+   (that's what lets it use `post`/`site`); `only` on the embed
+   cuts off that scope for the whole block, so `site.theme.link` was an
+   empty string **with no Twig error**. Confirmed by inspecting the rendered DOM
+   (`document.querySelector('svg use').getAttribute('href')`) and by testing
+   the fetch of the real URL (404 → 200 after the fix). Fixed by removing
+   `only` from the `{% embed %}` tag (the `card` component itself only
+   receives `variant` anyway; it's the `{% include %}` calls *inside*
+   the slots that keep their own `only` and stay isolated). Carried over
+   into `WORDPRESS.md` §3 and `card/README.md`.
+2. **`site.theme.link`** (Twig property/method of `Timber\Theme`) resolves
+   correctly once point 1 is fixed — confirmed via `wp eval-file`:
+   `$theme->link()` correctly returns the theme's absolute URI
+   (`.../app/themes/custom/tailwind`). The `http://` scheme returned (instead
+   of `https://`) comes from protocol detection on the PHP container side
+   behind Traefik, with no observed impact on rendering (the browser resolves
+   it relative/https) — worth watching if an absolute link is ever displayed
+   as-is on the user side.
+
+## 7. ACF Flexible Content page builder — done and verified end to end (2026-07-31)
+
+- [x] plugins installed and activated — **with a naming fix
+  discovered while trying**: the real Composer package name is
+  `wp-plugin/<slug>`, NOT `wpackagist-plugin/<slug>` as
+  `docker.md` originally claimed (`composer require
+  wpackagist-plugin/secure-custom-fields` fails with "package not found";
+  `composer show wp-plugin/polylang --all` confirms it). Not a
+  quirk of this repo: since Bedrock 1.30, [WP Packages](https://roots.io/wp-composer-is-now-wp-packages/)
+  (`repo.wp-packages.org`, declared in `composer.json`) is the
+  **official** package source replacing WPackagist. `docker.md` and the
+  root `README.md` have been corrected since.
+- [x] `wp-plugin/advanced-custom-fields-pro` **doesn't exist** on WP Packages
+  (ACF Pro is a paid plugin, never distributed via the wordpress.org SVN
+  that this source mirrors — makes sense, but worth checking before assuming
+  `WORDPRESS.md`'s §7 mission installs as-is). Installed
+  `wp-plugin/secure-custom-fields` instead, the fallback option already
+  documented in `WORDPRESS.md` §7 for this case — flexible content is
+  indeed available there (Secure Custom Fields = ACF's core features
+  turned free/native, see `wp plugin get secure-custom-fields`)
+- [x] `wp-plugin/polylang` installed and activated (`make wp ARGS="plugin
+  activate secure-custom-fields polylang"`, confirmed by `wp plugin list`)
+- [x] `sections` flexible content field created on `page`, with the exact
+  nested structure from `WORDPRESS.md` §7d: top-level = `hero` (max 1) +
+  `section` only; `section` contains a `columns` (select 1/2/3) and a
+  nested flexible content `content` with the 5 layouts `text_media`,
+  `cards_grid`, `cta_banner`, `accordion`, `embed`
+- [x] **registered in PHP** (`inc/acf-fields.php`, `acf_add_local_field_group`
+  on the `acf/init` hook), **not** via the UI + Local JSON export
+  (`acf-json/`) as `WORDPRESS.md` §7 originally planned — deliberate
+  deviation: building 7 nested layouts by mouse via browser
+  automation is slow and fragile (dozens of clicks), whereas
+  declaring it in PHP is just as versioned in git, faster and more reliable to
+  audit/evolve. `WORDPRESS.md` §7 updated accordingly.
+- [x] verified in the admin: only `Hero` and `Section (columns)` offered
+  at the top level (`section`/`text_media`/etc. absent, consistent with
+  the editorial rule); `Hero` grayed out after a first addition (native "max 1"
+  guardrail in ACF/SCF, no need for a custom validator unlike on Drupal);
+  the nested flexible content `Content` correctly offers the 5 internal layouts
+- [x] **full pipeline verified end to end in the browser**: a `section`
+  layout (1 column) containing a `cta_banner` created on `Sample Page`,
+  `views/templates/page.twig` maps `post.meta('sections')` (Timber correctly
+  exposes the nested ACF structure as-is, with `acf_fc_layout` at
+  every level — also confirmed on the pure PHP side via `get_field('sections', 2)`)
+  to `heading` + `button` (no dedicated `cta-banner` component, see note
+  below) — real render on `/fr/sample-page/`: title, button with the
+  right link (`/sample-page`), `bg-surface-alt` background, no PHP/Twig error
+- [x] **real bug found and fixed**: the `cta_url` sub-field declared as ACF
+  type `url` rejects any relative path (`/sample-page` → "This field
+  must contain a valid URL", save failure) — ACF validates a strict absolute
+  URL format. Fixed by switching `cta_url` (hero,
+  cta_banner, card) to type `text` with an explicit instruction; better
+  suited to internal CTAs than `url` or `page_link` (which would force
+  picking an existing page rather than a free-form path).
+- [x] **`cards-grid`, `accordion` + `accordion-item`, `embed` delivered**
+  (2026-07-31), `text_media` mapped without a dedicated component (direct
+  composition of horizontal `card` in `page.twig`, as planned in mission §7b):
+  - `views/components/03-organisms/cards-grid/`: 2/3/4-column grid
+    (Tailwind mapping object, never `grid-cols-{{ columns }}`), loop of
+    vertical `card` in `{% embed %}` (without `only`, see the bug #1 rule)
+  - `views/components/02-molecules/accordion-item/` (native
+    `<details>/<summary>`, no JS) + `views/components/03-organisms/accordion/`
+    (`divide-y` wrapper looping over it)
+  - `views/components/03-organisms/embed/`: `{{ code|raw }}`, trusted
+    content (ACF field entered by an editor, same trust level as
+    `post.content`)
+  - `card.twig` extended with a `reverse` prop (image on the right) to cover
+    `text_media`'s left/right `position`
+  - `page.twig` now maps the 5 nested layouts (`text_media`,
+    `cards_grid`, `cta_banner`, `accordion`, `embed`) — the `cards` loop
+    uses the Twig `|map` filter with an arrow function (Twig ≥ 3.4, requires
+    `twig/twig: v3.28.0` already installed) to transform each ACF
+    repeater item (`image.url`/`image.alt`) into the shape expected by
+    `cards-grid` (`image.src`/`image.alt`)
+  - **actually verified** on `Sample Page`: accordion opens on click
+    (native, no JS), `<iframe>` confirmed present in the DOM
+    (`document.querySelectorAll('iframe').length === 1`), `cards_grid`
+    card rendered with title/content/link, `text_media` without an image
+    rendered with no error (editor's default `right` position)
+- [x] `cta_banner` remains mapped as a direct composition in `page.twig`
+  (`heading` + `button`, no dedicated `cta-banner` component) — to create if
+  this composition repeats elsewhere (latent rule for the future architecture
+  README, §"when to create a component vs. a template")
+- [x] **symmetric Polylang translation workflow actually tested**
+  (2026-07-31): from `Sample Page` (post `2`, FR), clicking the `+` next
+  to the English flag in the *Languages* panel → new page
+  (`post-new.php?from_post=2&new_lang=en`) created with the `sections`
+  field **already filled in identically** (columns, nested `cta_banner`
+  layout, every sub-field including `cta_url`) — confirmed by scrolling
+  the new page's ACF form before any save. Published
+  (`Sample Page (EN)`, post `15`) and checked on `/en/sample-page-en/`:
+  render identical to FR (untranslated, the content is literally copied).
+  **Correction of a `WORDPRESS.md` §7a assumption**: copying the
+  structure when the translation is created is a **Polylang free
+  default behavior** (no per-field sync setting was configured on
+  the ACF group, registered in PHP with no dedicated Polylang screen) — no
+  need for Polylang Pro or a manual "copy the content" step to get the
+  initial structural symmetry; it's acquired at creation time. What remains
+  manual: then translating each text field on the EN page without breaking
+  the structure (no technical guardrail prevents it, it's an editorial
+  discipline, as expected).
+
+## 8. Polylang multilingual — configured and verified (2026-07-31)
+
+- [x] FR (default) + EN added via the Polylang wizard (`mlang_wizard`,
+  the only path available — no native WP-CLI command for Polylang)
+- [x] directory mode confirmed (`The language is set from the directory name
+  in pretty permalinks`, already Polylang's default setting)
+- [x] **`Hide URL language information for default language` unchecked** —
+  deliberately unchecked in *Settings > Languages > URL modifications*.
+  By default Polylang checks this box (FR, the default language, then has
+  no `/fr/` prefix); `WORDPRESS.md` §8 explicitly asks for symmetric
+  `/fr` and `/en` prefixes on both languages (faithful to the original
+  Drupal requirement), hence unchecking it
+  — verified: `/` redirects to `/fr/`, `/en/` responds 200
+- [x] browser detection: already disabled by default (`Detect browser
+  language` shows `Activate`, so it's inactive) — nothing to do
+- [x] media: `Allow Polylang to translate media` enabled in the wizard
+- [ ] `post`/`page` are automatically managed by Polylang once activated
+  (no dedicated toggle, unlike custom post types) — nothing to
+  configure as long as no CPT exists
+- [ ] expose `__()`/string translation to Twig components — still
+  to do (no translation function registered on the Twig side yet,
+  see the note in `tag/README.md`)
+
+### Actually verified: missing content on EN ≠ a bug
+
+Visiting `/en/` (no English translation of the "Hello world!" post
+exists), `post` is `null` in the front-page's Timber context — the
+`hero` component's `<h1>` therefore renders empty (`heading` with `text: null`),
+with no PHP/Twig error (Twig doesn't raise on a null attribute). Expected
+behavior as long as no translation has been created, not a component defect —
+mentioned here so it's not later mistaken for a regression.
+
+## 9. Quality / CI — to do
+
+- [ ] write the first Pest tests (no test currently exists
+  despite the `composer test` script already being present)
+- [ ] GitHub Actions job: `composer install`, `npm ci`, `composer lint`,
+  `composer test`, `npm run build`, gzipped CSS budget
+
+## Watch points — resolved or still open
+
+- **RESOLVED** — ~~ACF Flexible Content + Polylang: per-field
+  synchronization~~: in practice, no per-field sync setting was
+  needed. Polylang copies the entire `sections` structure as-is **at
+  translation creation time** (native free behavior, see §7/§8); beyond
+  that, FR and EN are independent postmeta — no ongoing
+  per-field synchronization to manage, so no risk of collision
+  between layouts sharing the same sub-field name (`variant`,
+  etc.) in this model.
+- **RESOLVED** — ~~`get_field()` in Twig via Timber~~: confirmed,
+  `post.meta('sections')` correctly exposes the nested ACF Flexible Content
+  structure as-is (`acf_fc_layout` at every level), see §7.
+- **Still open** — `{% include ... only %}` and custom Twig functions:
+  `only` restricts
+  the *variable* context, not globally registered functions/filters
+  (e.g. a hypothetical `__()` function exposed to Twig for
+  Polylang, §8) — behavior documented by Twig, not yet concretely
+  verified in this project for lack of a custom function registered
+  so far. See bug #1 in section 3-6 for the flip side, though: that same
+  `only`, placed on an `{% embed %}` rather than a plain `{% include %}`,
+  does break access to ambient variables (`site`, `post`) in slot blocks —
+  confirmed, not just a theoretical risk.
+
+---
+
+# 🇫🇷 Journal d'exécution — Composants Twig / Tailwind v4 / ACF Flexible Content
 
 Ce document retrace, en français, l'état réel du projet par rapport à la
 mission décrite dans [`WORDPRESS.md`](./WORDPRESS.md) : composants Twig,
@@ -16,8 +325,8 @@ ci-dessous), jamais en relisant le code.
 
 ## 0. État de départ (vérifié dans le dépôt au 2026-07-31)
 
-Ce qui existe déjà, documenté en détail dans [`docs/theme.md`](../theme.md)
-et [`docs/README.md`](../README.md) :
+Ce qui existe déjà, documenté en détail dans [`theme.md`](../theme.md)
+et [`docker.md`](../docker.md) :
 
 - Scaffold Bedrock (`composer.json`, `config/`, `web/wp`, `web/app`), PHP
   ≥ 8.4, Docker Compose (Traefik, PHP/Apache, MariaDB, node, phpMyAdmin,
@@ -37,7 +346,7 @@ et [`docs/README.md`](../README.md) :
   (`@import "tailwindcss"`, `@plugin "@tailwindcss/typography"`, `@source`
   sur `views/**/*.twig` et `**/*.php`), `assets/scripts/app.js`, bascule
   dev/prod dans `inc/vite.php`, HMR avec plugin `phpTwigReload` +
-  `usePolling` (problèmes résolus documentés dans `docs/theme.md`, pas à
+  `usePolling` (problèmes résolus documentés dans `theme.md`, pas à
   refaire ici)
 - `composer.json` : scripts `lint` (Pint) et `test` (Pest) déjà déclarés,
   mais **aucun test Pest écrit**, aucune CI GitHub Actions
@@ -144,12 +453,12 @@ déduire d'un journal rédigé au passé) :
 - [x] plugins installés et activés — **avec un correctif de composition
   découvert en essayant** : le nom de paquet Composer réel est
   `wp-plugin/<slug>`, PAS `wpackagist-plugin/<slug>` comme l'affirmait
-  `docs/README.md` à l'origine (`composer require
+  `docker.md` à l'origine (`composer require
   wpackagist-plugin/secure-custom-fields` échoue avec « package introuvable » ;
   `composer show wp-plugin/polylang --all` le confirme). Pas une
   bizarrerie de ce dépôt : depuis Bedrock 1.30, [WP Packages](https://roots.io/wp-composer-is-now-wp-packages/)
   (`repo.wp-packages.org`, déclaré dans `composer.json`) est la source de
-  paquets **officielle** qui remplace WPackagist. `docs/README.md` et le
+  paquets **officielle** qui remplace WPackagist. `docker.md` et le
   `README.md` racine corrigés depuis.
 - [x] `wp-plugin/advanced-custom-fields-pro` **n'existe pas** sur WP Packages
   (ACF Pro est un plugin payant, jamais distribué via le SVN wordpress.org

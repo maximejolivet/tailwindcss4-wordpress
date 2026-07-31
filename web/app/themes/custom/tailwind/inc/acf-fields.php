@@ -5,7 +5,7 @@
  * Registered in PHP (not built through the admin UI) so the field group is
  * versioned in git like any other code, rather than relying on ACF's Local
  * JSON auto-export to a separate `acf-json/` directory that then has to be
- * kept in sync with the UI. See docs/prompts/WORDPRESS-PROCESS.md §7 for the
+ * kept in sync with the UI. See .claude/prompts/WORDPRESS-PROCESS.md §7 for the
  * rationale.
  */
 
@@ -97,7 +97,7 @@ add_action('acf/init', function () {
                                 'name' => 'content',
                                 'type' => 'flexible_content',
                                 'button_label' => 'Ajouter un bloc',
-                                'instructions' => 'Les autres layouts ne sont insérables que dans une section (règle éditoriale de docs/prompts/WORDPRESS.md §7d).',
+                                'instructions' => 'Les autres layouts ne sont insérables que dans une section (règle éditoriale de .claude/prompts/WORDPRESS.md §7d).',
                                 'layouts' => [
                                     'layout_text_media' => [
                                         'key' => 'layout_text_media',

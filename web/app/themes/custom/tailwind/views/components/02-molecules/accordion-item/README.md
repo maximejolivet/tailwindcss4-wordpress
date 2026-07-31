@@ -5,10 +5,10 @@ fonctionne même si le bundle JS du thème ne charge pas.
 
 ## Props
 
-| Prop | Type | Défaut | Description |
-|---|---|---|---|
-| `question` | string | requis | Texte du `<summary>` |
-| `answer` | string | requis | HTML de la réponse (ex. sortie d'un champ wysiwyg ACF) |
+| Prop       | Type   | Défaut | Description                                            |
+| ---------- | ------ | ------ | ------------------------------------------------------ |
+| `question` | string | requis | Texte du `<summary>`                                   |
+| `answer`   | string | requis | HTML de la réponse (ex. sortie d'un champ wysiwyg ACF) |
 
 ## Usage
 

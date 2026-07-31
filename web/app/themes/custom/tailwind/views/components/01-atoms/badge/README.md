@@ -5,10 +5,10 @@ classification.
 
 ## Props
 
-| Prop | Type | Valeurs | Défaut | Description |
-|---|---|---|---|---|
-| `label` | string | — | requis | Texte affiché |
-| `variant` | string | `neutral`,`success`,`warning`,`danger`,`info` | `neutral` | Couleur |
+| Prop      | Type   | Valeurs                                       | Défaut    | Description   |
+| --------- | ------ | --------------------------------------------- | --------- | ------------- |
+| `label`   | string | —                                             | requis    | Texte affiché |
+| `variant` | string | `neutral`,`success`,`warning`,`danger`,`info` | `neutral` | Couleur       |
 
 ## Usage
 

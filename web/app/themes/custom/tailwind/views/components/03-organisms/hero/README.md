@@ -10,12 +10,12 @@ d'accueil). Avec `media`, bascule en grille 2 colonnes (texte + image).
 
 ## Props
 
-| Prop | Type | Défaut | Description |
-|---|---|---|---|
-| `title` | string | requis | Titre principal (`<h1>`) |
-| `subtitle` | string | — | Texte secondaire |
-| `media` | objet `{src, alt}` | — | Image affichée à droite ; change la mise en page |
-| `cta` | objet `{label, url}` | — | Bouton d'action principal |
+| Prop       | Type                 | Défaut | Description                                      |
+| ---------- | -------------------- | ------ | ------------------------------------------------ |
+| `title`    | string               | requis | Titre principal (`<h1>`)                         |
+| `subtitle` | string               | —      | Texte secondaire                                 |
+| `media`    | objet `{src, alt}`   | —      | Image affichée à droite ; change la mise en page |
+| `cta`      | objet `{label, url}` | —      | Bouton d'action principal                        |
 
 ## Usage
 

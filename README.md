@@ -45,13 +45,13 @@ docker compose -f docker/docker-compose.yml --project-directory . exec php \
   composer require wp-plugin/<slug>
 ```
 
-Currently installed: `wp-plugin/secure-custom-fields` (ACF-compatible custom fields, powers the page builder — see [`docs/theme.md`](docs/theme.md)) and `wp-plugin/polylang` (FR/EN multilingual).
+Currently installed: `wp-plugin/secure-custom-fields` (ACF-compatible custom fields, powers the page builder — see [`.claude/theme.md`](.claude/theme.md)) and `wp-plugin/polylang` (FR/EN multilingual).
 
 ## Custom theme (`web/app/themes/custom/tailwind`)
 
 A custom theme built with [Timber v2](https://timber.github.io/docs/v2/) (Twig templates, `views/`) and Tailwind CSS 4 via Vite, with a reusable Twig component library (`views/components/`, atoms/molecules/organisms) and an ACF Flexible Content page builder (`inc/acf-fields.php`).
 
-See [`docs/theme.md`](docs/theme.md) for the theme's architecture, Timber/Twig conventions and HMR setup, and the **Commands** section below for `vite-*` targets.
+See [`.claude/theme.md`](.claude/theme.md) for the theme's architecture, Timber/Twig conventions and HMR setup, and the **Commands** section below for `vite-*` targets.
 
 ## Commands
 
@@ -90,7 +90,7 @@ All commands run via `make` from the repo root (see `Makefile`; run `make help` 
 | `make vite-build` | Build production assets (`web/app/themes/custom/tailwind/dist/`) |
 | `make npm ARGS="..."` | Run an arbitrary npm command in the theme, e.g. `make npm ARGS="run build"` |
 
-### Deployment (o2switch — see [`docs/deploy.md`](docs/deploy.md))
+### Deployment (o2switch — see [`.claude/deploy.md`](.claude/deploy.md))
 
 | Command | Effect |
 |---|---|
@@ -113,11 +113,3 @@ All commands run via `make` from the repo root (see `Makefile`; run `make help` 
 - [x] Multilingual FR/EN (Polylang), symmetric translation workflow
 - [x] Production deployment to o2switch (manual `make deploy` + GitHub Actions CI/CD)
 - [ ] CI: automated tests (Pest) and linting in GitHub Actions
-
-## Documentation
-
-- [`docs/README.md`](docs/README.md) — commandes Docker au quotidien (start/stop/logs, accès aux conteneurs, base de données)
-- [`docker/README.md`](docker/README.md) — détails de l'environnement (Colima, Traefik, certificats, Bedrock/Composer/WP-CLI)
-- [`docs/theme.md`](docs/theme.md) — thème custom Timber v2 + Tailwind CSS 4 + Vite (architecture, composants, page builder, HMR)
-- [`docs/deploy.md`](docs/deploy.md) — déploiement en production (o2switch, manuel et CI GitHub Actions)
-- [`docs/prompts/WORDPRESS.md`](docs/prompts/WORDPRESS.md) / [`WORDPRESS-PROCESS.md`](docs/prompts/WORDPRESS-PROCESS.md) — mission complète et journal d'exécution réel

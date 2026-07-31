@@ -6,12 +6,12 @@ Symboles disponibles actuellement : `arrow-right`, `close`, `check`.
 
 ## Props
 
-| Prop | Type | Défaut | Description |
-|---|---|---|---|
-| `name` | string | requis | id du `<symbol>` dans `sprite.svg` |
-| `sprite_url` | string | requis | URL absolue vers `sprite.svg` (voir note) |
-| `size` | string | `md` (`sm`,`md`,`lg`) | Taille (`size-4/5/6`) |
-| `class` | string | — | Classes supplémentaires (ex. couleur `text-primary`) |
+| Prop         | Type   | Défaut                | Description                                          |
+| ------------ | ------ | --------------------- | ---------------------------------------------------- |
+| `name`       | string | requis                | id du `<symbol>` dans `sprite.svg`                   |
+| `sprite_url` | string | requis                | URL absolue vers `sprite.svg` (voir note)            |
+| `size`       | string | `md` (`sm`,`md`,`lg`) | Taille (`size-4/5/6`)                                |
+| `class`      | string | —                     | Classes supplémentaires (ex. couleur `text-primary`) |
 
 ## Usage
 

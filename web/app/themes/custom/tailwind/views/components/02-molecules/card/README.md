@@ -22,10 +22,10 @@ le composant terminal.
 
 ## Props
 
-| Prop | Type | Valeurs | Défaut | Description |
-|---|---|---|---|---|
-| `variant` | string | `vertical`,`horizontal` | `vertical` | Disposition |
-| `reverse` | bool | — | `false` | Horizontal uniquement : image à droite au lieu de gauche |
+| Prop      | Type   | Valeurs                 | Défaut     | Description                                              |
+| --------- | ------ | ----------------------- | ---------- | -------------------------------------------------------- |
+| `variant` | string | `vertical`,`horizontal` | `vertical` | Disposition                                              |
+| `reverse` | bool   | —                       | `false`    | Horizontal uniquement : image à droite au lieu de gauche |
 
 ## Slots
 

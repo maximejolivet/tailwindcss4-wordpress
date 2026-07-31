@@ -7,10 +7,10 @@ Tailwind).
 
 ## Props
 
-| Prop | Type | Défaut | Description |
-|---|---|---|---|
-| `columns` | int | `3` (`2`,`3`,`4`) | Nombre de colonnes en desktop |
-| `cards` | array de `{title, content, image: {src, alt}, url}` | requis | Une entrée par carte, tous les sous-champs optionnels |
+| Prop      | Type                                                | Défaut            | Description                                           |
+| --------- | --------------------------------------------------- | ----------------- | ----------------------------------------------------- |
+| `columns` | int                                                 | `3` (`2`,`3`,`4`) | Nombre de colonnes en desktop                         |
+| `cards`   | array de `{title, content, image: {src, alt}, url}` | requis            | Une entrée par carte, tous les sous-champs optionnels |
 
 ## Usage
 

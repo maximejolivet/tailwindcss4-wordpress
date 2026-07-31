@@ -7,8 +7,8 @@ entrée utilisateur front.
 
 ## Props
 
-| Prop | Type | Défaut | Description |
-|---|---|---|---|
+| Prop   | Type   | Défaut | Description                           |
+| ------ | ------ | ------ | ------------------------------------- |
 | `code` | string | requis | HTML brut (iframe, script d'embed...) |
 
 ## Usage

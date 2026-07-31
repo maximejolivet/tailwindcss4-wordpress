@@ -43,3 +43,7 @@ web/app/themes/**/dist/
 .idea/
 .vscode/
 /web/app/languages
+
+# Claude Code — personal overrides (settings.json/rules/skills are shared, committed)
+.claude/settings.local.json
+.claude/prompts
