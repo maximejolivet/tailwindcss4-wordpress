@@ -2,10 +2,10 @@
 <html {{ site.language_attributes }}>
 {% include 'partials/head.twig' %}
 
-<body class="{{ body_class }} min-h-screen flex flex-col bg-white text-gray-900">
+<body class="{{ body_class }} min-h-screen flex flex-col bg-surface text-text">
     {{ function('wp_body_open') }}
 
-    <header class="border-b border-gray-200">
+    <header class="border-b border-border">
         <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-6">
             <a href="{{ site.url }}" class="text-xl font-bold tracking-tight">{{ site.name }}</a>
             {% include 'partials/menu.twig' with { items: menu.items } %}

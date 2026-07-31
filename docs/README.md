@@ -84,7 +84,7 @@ Le fichier `.env` (racine du repo, non commité, à copier depuis `.env.example`
 Points d'attention :
 - `DB_HOST` doit valoir `database` (nom du service MariaDB), pas `localhost`.
 - `WP_HOME`/`WP_SITEURL` doivent correspondre à l'URL Traefik (`https://tailwind-wordpress.localhost`).
-- Les plugins/thèmes se gèrent via Composer (wpackagist), pas depuis l'admin WordPress : `$COMPOSE exec php composer require wpackagist-plugin/<slug>`.
+- Les plugins/thèmes se gèrent via Composer, pas depuis l'admin WordPress : `$COMPOSE exec php composer require wp-plugin/<slug>` (le mirroir Composer de ce dépôt, `repo.wp-packages.org` déclaré dans `composer.json`, nomme les paquets `wp-plugin/<slug>` et `wp-theme/<slug>` — pas `wpackagist-plugin/<slug>`/`wpackagist-theme/<slug>` comme sur le wpackagist.org public ; vérifié avec `composer show wp-plugin/polylang --all`).
 
 ## URLs locales (via Traefik)
 

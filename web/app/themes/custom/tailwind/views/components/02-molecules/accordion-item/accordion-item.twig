@@ -1,0 +1,12 @@
+{#
+  Props: question (string, requis)
+         answer (string, HTML autorisé — ex. sortie d'un champ wysiwyg ACF)
+  <details>/<summary> natif : pas de JS, fonctionne sans rien charger.
+#}
+<details class="group py-4">
+    <summary class="flex cursor-pointer list-none items-center justify-between font-medium marker:content-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+        {{ question }}
+        <span class="ml-4 shrink-0 transition-transform group-open:rotate-45" aria-hidden="true">+</span>
+    </summary>
+    <div class="prose prose-neutral mt-3 max-w-none text-text-muted">{{ answer|raw }}</div>
+</details>

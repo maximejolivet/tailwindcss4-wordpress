@@ -1,0 +1,19 @@
+{#
+  Props: variant (vertical|horizontal, default: vertical)
+         reverse (bool, default: false — horizontal uniquement, image à
+                  droite au lieu de gauche)
+  Slots (via {% block %}, s'utilise avec {% embed %} — jamais {% include %},
+         Twig ne permet les blocs qu'à travers embed) :
+         image, title, content, footer — tous optionnels
+#}
+{% set is_horizontal = variant|default('vertical') == 'horizontal' %}
+<article class="overflow-hidden rounded-md border border-border {{ is_horizontal ? 'flex' : '' }} {{ is_horizontal and reverse ? 'flex-row-reverse' : '' }}">
+    <div class="{{ is_horizontal ? 'w-1/3 shrink-0' : '' }}">
+        {% block image %}{% endblock %}
+    </div>
+    <div class="flex flex-1 flex-col gap-2 p-4">
+        {% block title %}{% endblock %}
+        {% block content %}{% endblock %}
+        {% block footer %}{% endblock %}
+    </div>
+</article>

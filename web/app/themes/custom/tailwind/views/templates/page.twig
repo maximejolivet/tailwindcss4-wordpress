@@ -1,8 +1,83 @@
 {% extends 'layouts/base.twig' %}
 
+{#
+  Mapping pur ACF Flexible Content -> composants Twig (cf. WORDPRESS.md §7c) :
+  aucune balise de structure ici en dehors de la grille de `section`, tout le
+  HTML vit dans les composants. `text_media` et `cta_banner` n'ont pas de
+  composant dédié (hors périmètre des "composants de départ" du §4) : ils
+  sont composés directement ici depuis `card`/`heading`/`button`.
+#}
+{% set sections = post.meta('sections') %}
+
 {% block content %}
-    <article class="mx-auto max-w-3xl px-4 py-12">
-        <h1 class="text-3xl font-bold">{{ post.title }}</h1>
-        <div class="prose prose-neutral mt-6 max-w-none">{{ post.content }}</div>
-    </article>
+    {% if sections %}
+        {% for section in sections %}
+            {% if section.acf_fc_layout == 'hero' %}
+                {% include 'components/03-organisms/hero/hero.twig' with {
+                    title: section.title,
+                    subtitle: section.subtitle,
+                    media: section.media ? { src: section.media.url, alt: section.media.alt } : null,
+                    cta: section.cta_label ? { label: section.cta_label, url: section.cta_url } : null,
+                } only %}
+            {% elseif section.acf_fc_layout == 'section' %}
+                {% set column_classes = { '1': 'grid-cols-1', '2': 'grid-cols-2', '3': 'grid-cols-3' } %}
+                <div class="mx-auto max-w-5xl grid gap-8 px-4 py-section {{ column_classes[section.columns] }}">
+                    {% for block in section.content %}
+                        {% if block.acf_fc_layout == 'cta_banner' %}
+                            <div class="rounded-lg bg-surface-alt p-8 text-center">
+                                {% include 'components/01-atoms/heading/heading.twig' with { text: block.title, level: 2, size: 'lg' } only %}
+                                {% if block.text %}
+                                    <p class="mt-2 text-text-muted">{{ block.text }}</p>
+                                {% endif %}
+                                <div class="mt-6">
+                                    {% include 'components/01-atoms/button/button.twig' with { label: block.cta_label, url: block.cta_url, variant: 'primary' } only %}
+                                </div>
+                            </div>
+                        {% elseif block.acf_fc_layout == 'text_media' %}
+                            {% embed 'components/02-molecules/card/card.twig' with {
+                                variant: 'horizontal',
+                                reverse: block.position == 'right',
+                            } %}
+                                {% block image %}
+                                    {% if block.media %}
+                                        <img src="{{ block.media.url }}" alt="{{ block.media.alt|default('') }}" class="h-full w-full object-cover">
+                                    {% endif %}
+                                {% endblock %}
+                                {% block content %}
+                                    <div class="prose prose-neutral max-w-none">{{ block.body|raw }}</div>
+                                {% endblock %}
+                            {% endembed %}
+                        {% elseif block.acf_fc_layout == 'cards_grid' %}
+                            {% include 'components/03-organisms/cards-grid/cards-grid.twig' with {
+                                columns: block.columns,
+                                cards: block.cards|map(card => {
+                                    title: card.title,
+                                    content: card.content,
+                                    image: card.image ? { src: card.image.url, alt: card.image.alt } : null,
+                                    url: card.url,
+                                }),
+                            } only %}
+                        {% elseif block.acf_fc_layout == 'accordion' %}
+                            {% include 'components/03-organisms/accordion/accordion.twig' with {
+                                items: block.items,
+                            } only %}
+                        {% elseif block.acf_fc_layout == 'embed' %}
+                            {% include 'components/03-organisms/embed/embed.twig' with {
+                                code: block.code,
+                            } only %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% else %}
+        <article class="mx-auto max-w-3xl px-4 py-12">
+            {% include 'components/01-atoms/heading/heading.twig' with {
+                text: post.title,
+                level: 1,
+                size: 'lg',
+            } only %}
+            <div class="prose prose-neutral mt-6 max-w-none">{{ post.content }}</div>
+        </article>
+    {% endif %}
 {% endblock %}

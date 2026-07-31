@@ -1,8 +1,40 @@
 {% extends 'layouts/base.twig' %}
 
 {% block content %}
-    <div class="mx-auto max-w-5xl px-4 py-24 text-center">
-        <h1 class="text-4xl font-bold tracking-tight">{{ post.title }}</h1>zezeze
-        <div class="prose prose-neutral mx-auto mt-6 max-w-none">{{ post.content }}</div>
+    {% include 'components/03-organisms/hero/hero.twig' with {
+        title: post.title,
+        subtitle: 'Thème custom Timber v2 + Tailwind CSS v4 + Vite.',
+        cta: { label: 'En savoir plus', url: post.link },
+    } only %}
+
+    <div class="mx-auto max-w-5xl px-4 pb-24 text-center">
+        <div class="prose prose-neutral mx-auto max-w-none">{{ post.content }}</div>
+        <div class="mt-4 flex justify-center gap-2">
+            {% include 'components/01-atoms/badge/badge.twig' with { label: 'Nouveau', variant: 'info' } only %}
+            {% include 'components/01-atoms/tag/tag.twig' with { label: 'Actualités', removable: true } only %}
+        </div>
+    </div>
+
+    <div class="mx-auto max-w-3xl px-4 pb-24">
+        {% embed 'components/02-molecules/card/card.twig' with { variant: 'horizontal' } %}
+            {% block image %}
+                <div class="flex h-full min-h-32 items-center justify-center bg-surface-alt text-text-muted">
+                    {% include 'components/01-atoms/icon/icon.twig' with {
+                        name: 'check',
+                        sprite_url: site.theme.link ~ '/assets/images/sprite.svg',
+                        size: 'lg',
+                    } only %}
+                </div>
+            {% endblock %}
+            {% block title %}
+                {% include 'components/01-atoms/heading/heading.twig' with { text: 'Exemple de card', level: 3, size: 'md' } only %}
+            {% endblock %}
+            {% block content %}
+                <p class="text-text-muted">Démo du composant card en variant horizontale, avec une icône en slot image.</p>
+            {% endblock %}
+            {% block footer %}
+                {% include 'components/01-atoms/button/button.twig' with { label: 'Voir plus', variant: 'ghost', size: 'sm', url: post.link } only %}
+            {% endblock %}
+        {% endembed %}
     </div>
 {% endblock %}

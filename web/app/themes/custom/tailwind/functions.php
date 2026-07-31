@@ -14,3 +14,4 @@ Timber::init();
 new Site();
 
 require __DIR__ . '/inc/vite.php';
+require __DIR__ . '/inc/acf-fields.php';

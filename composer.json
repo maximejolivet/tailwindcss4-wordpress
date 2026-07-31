@@ -36,13 +36,16 @@
     "oscarotero/env": "^2.0",
     "roots/bedrock-autoloader": "^1.0",
     "roots/bedrock-disallow-indexing": "^2.0",
-    "roots/wordpress": "7.0",
+    "roots/wordpress": "^7.0",
     "roots/wp-config": "^1.0",
     "timber/timber": "^2.1",
     "vlucas/phpdotenv": "^5.0",
+    "wp-plugin/polylang": "^3.8",
+    "wp-plugin/secure-custom-fields": "^6.9",
     "wp-theme/twentytwentyfive": "^1.0"
   },
   "require-dev": {
+    "aaemnnosttv/wp-cli-login-command": "^1.5",
     "laravel/pint": "^1.0",
     "pestphp/pest": "^4.0"
   },

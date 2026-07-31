@@ -1,0 +1,35 @@
+{#
+  Props: columns (2|3|4, default: 3)
+         cards (array de { title, content, image: {src, alt}, url }, requis)
+#}
+{% set column_classes = {
+    2: 'grid-cols-1 sm:grid-cols-2',
+    3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
+    4: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
+} %}
+<div class="grid gap-6 {{ column_classes[columns|default(3)] }}">
+    {% for card in cards %}
+        {% embed 'components/02-molecules/card/card.twig' with { variant: 'vertical' } %}
+            {% block image %}
+                {% if card.image %}
+                    <img src="{{ card.image.src }}" alt="{{ card.image.alt|default('') }}" class="aspect-video w-full object-cover">
+                {% endif %}
+            {% endblock %}
+            {% block title %}
+                {% if card.title %}
+                    {% include 'components/01-atoms/heading/heading.twig' with { text: card.title, level: 3, size: 'md' } only %}
+                {% endif %}
+            {% endblock %}
+            {% block content %}
+                {% if card.content %}
+                    <p class="text-text-muted">{{ card.content }}</p>
+                {% endif %}
+            {% endblock %}
+            {% block footer %}
+                {% if card.url %}
+                    {% include 'components/01-atoms/button/button.twig' with { label: 'Lire la suite', variant: 'ghost', size: 'sm', url: card.url } only %}
+                {% endif %}
+            {% endblock %}
+        {% endembed %}
+    {% endfor %}
+</div>

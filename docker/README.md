@@ -96,6 +96,24 @@ mkcert -cert-file docker/traefik/certs/tailwind-wordpress.localhost.pem \
 Without `mkcert -install`, the browser will show an untrusted certificate
 warning even if the certificate itself is correctly generated.
 
+## Dockhand
+
+[Dockhand](https://github.com/fnsys/dockhand) is meant to run as a single
+instance shared across every project on the machine (`make dockhand-register`
+registers this project's stack against whichever Dockhand instance is
+already listening on `http://localhost:3000`, creating a local environment
+if none exists yet).
+
+The `dockhand` service in `docker-compose.yml` starts a Dockhand container
+per project, all bound to host port 3000. **Known limitation:** if another
+project's stack is already running (and therefore already holds port 3000),
+`make start`/`make restart` here will fail to (re)create this project's
+`dockhand` container with a "port is already allocated" error — the rest of
+the stack (php, database, node, phpmyadmin, mailhog, traefik) still starts
+fine. This is harmless: `make dockhand-register` still works against the
+other project's already-running instance, since Dockhand only needs to exist
+once per machine, not once per project.
+
 ## Node on macOS (Apple Silicon)
 
 The `node` service in `docker-compose.yml` uses the official `node:22` image

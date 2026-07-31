@@ -1,0 +1,33 @@
+{#
+  Props: title (string, requis)
+         subtitle (string, optionnel)
+         media (objet {src, alt}, optionnel — image affichée à droite ;
+                sans media, le titre/sous-titre/cta sont centrés pleine largeur)
+         cta (objet {label, url}, optionnel)
+#}
+{% set has_media = media is defined and media.src is defined %}
+<section class="mx-auto max-w-5xl px-4 py-section {{ has_media ? 'grid gap-12 md:grid-cols-2 md:items-center' : 'text-center' }}">
+    <div>
+        {% include 'components/01-atoms/heading/heading.twig' with {
+            text: title,
+            level: 1,
+            size: '2xl',
+        } only %}
+        {% if subtitle %}
+            <p class="mt-4 text-lg text-text-muted">{{ subtitle }}</p>
+        {% endif %}
+        {% if cta is defined and cta.label is defined %}
+            <div class="mt-8 {{ has_media ? '' : 'flex justify-center' }}">
+                {% include 'components/01-atoms/button/button.twig' with {
+                    label: cta.label,
+                    url: cta.url|default(null),
+                    variant: 'primary',
+                    size: 'lg',
+                } only %}
+            </div>
+        {% endif %}
+    </div>
+    {% if has_media %}
+        <img src="{{ media.src }}" alt="{{ media.alt|default('') }}" class="w-full rounded-lg object-cover">
+    {% endif %}
+</section>

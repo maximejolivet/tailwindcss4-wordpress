@@ -3,3 +3,36 @@
 
 @source "../../views/**/*.twig";
 @source "../../**/*.php";
+
+@theme {
+    --color-primary: oklch(0.55 0.22 265);
+    --color-primary-hover: oklch(0.47 0.22 265);
+    --color-secondary: oklch(0.7 0.15 200);
+    --color-secondary-hover: oklch(0.62 0.15 200);
+
+    --color-surface: oklch(1 0 0);
+    --color-surface-alt: oklch(0.97 0 0);
+    --color-surface-inverse: oklch(0.2 0 0);
+
+    --color-text: oklch(0.2 0 0);
+    --color-text-muted: oklch(0.45 0 0);
+    --color-text-inverse: oklch(1 0 0);
+
+    --color-border: oklch(0.9 0 0);
+    --color-border-strong: oklch(0.75 0 0);
+
+    --color-success: oklch(0.44 0.13 152);
+    --color-success-surface: oklch(0.93 0.06 152);
+    --color-warning: oklch(0.5 0.15 70);
+    --color-warning-surface: oklch(0.93 0.08 80);
+    --color-danger: oklch(0.5 0.2 25);
+    --color-danger-surface: oklch(0.93 0.07 20);
+    --color-info: oklch(0.5 0.15 250);
+    --color-info-surface: oklch(0.93 0.05 250);
+
+    --radius-sm: 0.25rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+
+    --spacing-section: 6rem;
+}

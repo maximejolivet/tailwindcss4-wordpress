@@ -6,8 +6,12 @@
             <img src="{{ post.thumbnail.src|resize(1200, 630) }}" alt="{{ post.thumbnail.alt }}" class="mb-8 w-full rounded-lg">
         {% endif %}
 
-        <h1 class="text-3xl font-bold">{{ post.title }}</h1>
-        <p class="mt-2 text-sm text-gray-500">
+        {% include 'components/01-atoms/heading/heading.twig' with {
+            text: post.title,
+            level: 1,
+            size: 'lg',
+        } only %}
+        <p class="mt-2 text-sm text-text-muted">
             By {{ post.author.name }} &bull; <time datetime="{{ post.date('Y-m-d H:i:s') }}">{{ post.date }}</time>
         </p>
 

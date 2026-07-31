@@ -1,0 +1,8 @@
+{#
+  Props: code (string, requis — HTML fourni par un service tiers : iframe
+         vidéo, embed réseau social... contenu de confiance, saisi par un
+         éditeur via le champ ACF `embed.code`, jamais par un visiteur)
+#}
+<div class="mx-auto max-w-3xl overflow-hidden rounded-md [&_iframe]:w-full">
+    {{ code|raw }}
+</div>

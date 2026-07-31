@@ -1,0 +1,12 @@
+{#
+  Props: label (string, requis)
+         removable (bool, default: false — affiche un bouton de suppression ;
+                     le retrait effectif du DOM est géré par le listener
+                     délégué sur [data-tag-remove] dans assets/scripts/app.js)
+#}
+<span class="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1 text-sm text-text" data-tag>
+    {{ label }}
+    {% if removable %}
+        <button type="button" class="ml-1 text-text-muted hover:text-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" data-tag-remove aria-label="Retirer {{ label }}">&times;</button>
+    {% endif %}
+</span>

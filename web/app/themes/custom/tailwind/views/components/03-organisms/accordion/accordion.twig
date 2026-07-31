@@ -1,0 +1,11 @@
+{#
+  Props: items (array de { question, answer }, requis)
+#}
+<div class="divide-y divide-border">
+    {% for item in items %}
+        {% include 'components/02-molecules/accordion-item/accordion-item.twig' with {
+            question: item.question,
+            answer: item.answer,
+        } only %}
+    {% endfor %}
+</div>

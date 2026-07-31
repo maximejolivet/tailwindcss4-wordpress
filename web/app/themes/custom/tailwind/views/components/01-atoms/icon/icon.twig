@@ -1,0 +1,17 @@
+{#
+  Props: name (string, requis — id du <symbol> dans sprite.svg)
+         sprite_url (string, requis — URL absolue vers assets/images/sprite.svg,
+                     ex. `site.theme.link ~ '/assets/images/sprite.svg'` côté
+                     appelant ; le composant reste isolé, il ne lit jamais
+                     `site` lui-même)
+         size (sm|md|lg, default: md)
+         class (optionnel — classes supplémentaires, ex. couleur via `text-*`)
+#}
+{% set sizes = {
+    sm: 'size-4',
+    md: 'size-5',
+    lg: 'size-6',
+} %}
+<svg class="inline-block {{ sizes[size|default('md')] }} {{ class|default('') }}" aria-hidden="true">
+    <use href="{{ sprite_url }}#{{ name }}"></use>
+</svg>
