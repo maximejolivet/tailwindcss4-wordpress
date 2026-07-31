@@ -49,61 +49,34 @@ jobs:
         id: ip
         uses: haythem/public-ip@v1.3
 
-      # o2switch caps the number of whitelisted IPs. Since every run adds a
-      # new one and nothing removes old ones on its own, the quota eventually
-      # fills up and blocks SSH entirely (API replies HTTP 200 with
-      # {"success":false,"message":"...limite d'exceptions autorisées..."}).
-      # Rather than sweeping every entry on every run (which would also nuke
-      # a developer's own manually-whitelisted IP used for `make deploy`),
-      # try the add first and only remove one entry — the last one found on
-      # the whitelist page — if it fails on the quota, then retry.
-      - name: Whitelist runner IP for SSH (o2switch)
+      # o2switch caps the number of whitelisted IPs, and since every run adds
+      # a new one and nothing removes old ones on its own, the quota fills up
+      # after a few runs and blocks SSH entirely. Uses the JSON list endpoint
+      # (?r=list, .data.list[].address) instead of scraping HTML, and removes
+      # both `in` and `out` directions per IP (o2switch tracks them
+      # separately) before re-adding the current runner IP.
+      - name: Whitelist IP on hosting & delete github old ones (o2switch)
+        shell: bash
         run: |
+          ENDPOINT='frontend/o2switch/o2switch-ssh-whitelist/index.live.php'
           CPANEL="https://${{ secrets.DEPLOY_SSH_USER }}:${{ secrets.DEPLOY_CPANEL_PASSWORD }}@${{ secrets.DEPLOY_SSH_HOST }}:2083"
-          IP="${{ steps.ip.outputs.ipv4 }}"
 
-          add_ip() {
-            curl -sS -o /tmp/whitelist-response.html -w '%{http_code}' -X POST \
-              -d "whitelist[address]=$IP" \
-              -d 'whitelist[port]=22' \
-              "$CPANEL/frontend/o2switch/o2switch-ssh-whitelist/index.live.php?r=add"
-          }
+          echo "Get actual whitelisted IPs..."
+          RESPONSE=$(curl -sX GET "$CPANEL/$ENDPOINT?r=list")
+          echo "Response: $RESPONSE"
+          UNIQUE_IPS=$(echo "$RESPONSE" | jq -r '.data.list[] | .address' | sort -u)
 
-          remove_last_entry() {
-            last_entry=$(curl -sS "$CPANEL/frontend/o2switch/o2switch-ssh-whitelist/index.live.php?r=list" \
-              | jq -c '[.. | objects | select(has("address"))] | last')
-            last_ip=$(echo "$last_entry" | jq -r '.address // empty')
-            last_port=$(echo "$last_entry" | jq -r '.port // 22')
-            if [ -n "$last_ip" ]; then
-              echo "Whitelist full: removing most recent entry ($last_ip:$last_port)"
-              curl -sS "$CPANEL/frontend/o2switch/o2switch-ssh-whitelist/index.live.php?r=remove&address=$last_ip&direction=in&port=$last_port" > /dev/null
-              return 0
-            fi
-            echo "Whitelist full but no removable entry found (list format may have changed)"
-            return 1
-          }
-
-          echo "--- Adding $IP to the SSH whitelist ---"
-          http_code=$(add_ip)
-          echo "HTTP status: $http_code"
-
-          attempt=0
-          while grep -q '"success":false' /tmp/whitelist-response.html && [ "$attempt" -lt 5 ]; do
-            attempt=$((attempt + 1))
-            echo "--- Add failed (attempt $attempt) ---"
-            cat /tmp/whitelist-response.html
-            echo ""
-            remove_last_entry || break
-            echo "--- Retrying add of $IP ---"
-            http_code=$(add_ip)
-            echo "HTTP status: $http_code"
+          for address in $UNIQUE_IPS; do
+            echo "Delete this github IP: $address (in & out)"
+            curl -sX GET "$CPANEL/$ENDPOINT?r=remove&address=$address&direction=in&port=22" | jq
+            sleep 3
+            curl -sX GET "$CPANEL/$ENDPOINT?r=remove&address=$address&direction=out&port=22" | jq
+            sleep 3
           done
+          echo "All non-whitelisted IPs deleted!"
 
-          echo "--- Final response body (first 2000 chars) ---"
-          head -c 2000 /tmp/whitelist-response.html
-          echo ""
-          echo "--- Current whitelist (fetched right after) ---"
-          curl -sS "$CPANEL/frontend/o2switch/o2switch-ssh-whitelist/index.live.php?r=list" | jq
+          echo "Attempt to whitelist IP..."
+          curl -sX POST -d 'whitelist[address]=${{ steps.ip.outputs.ipv4 }}' -d 'whitelist[port]=22' "$CPANEL/$ENDPOINT?r=add" | jq
           sleep 65
 
       # Isolates network-level reachability from SSH-specific failures
