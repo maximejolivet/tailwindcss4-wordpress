@@ -129,7 +129,13 @@ vite-build: ## Build the tailwind theme's production assets
 # --------------------------------------------------------------------------
 
 DEPLOY_SSH = ssh -p $(DEPLOY_SSH_PORT) $(DEPLOY_SSH_USER)@$(DEPLOY_SSH_HOST)
-DEPLOY_RSYNC_EXCLUDES = --exclude-from=.gitignore --exclude '.git' --exclude 'docker' --exclude '.env.deploy*'
+# dist/ is gitignored (build artifact, never versioned) but must still be
+# deployed: the --include rules carve it back out before .gitignore's
+# blanket exclude applies (rsync filter rules are first-match-wins, so the
+# includes must come first) — otherwise `vite-build`'s output never leaves
+# the runner/machine and the server keeps serving a stale or missing
+# manifest.json (breaks CSS/JS in production).
+DEPLOY_RSYNC_EXCLUDES = --include 'web/app/themes/**/dist/' --include 'web/app/themes/**/dist/**' --exclude-from=.gitignore --exclude '.git' --exclude 'docker' --exclude '.env.deploy*'
 
 deploy-dry-run: vite-build ## Preview what `make deploy` would sync/delete on the server, without changing anything
 	rsync -avzn --delete $(DEPLOY_RSYNC_EXCLUDES) -e "ssh -p $(DEPLOY_SSH_PORT)" \
