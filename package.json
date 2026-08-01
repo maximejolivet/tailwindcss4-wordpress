@@ -1,0 +1,14 @@
+{
+  "name": "tailwindcss4-wordpress",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Root-level dev tooling (git commit hooks) for the tailwindcss4-wordpress Bedrock project. The Vite theme has its own package.json in web/app/themes/custom/tailwind.",
+  "scripts": {
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.1",
+    "@commitlint/config-conventional": "^21.2.0",
+    "husky": "^9.1.7"
+  }
+}
