@@ -4,6 +4,19 @@
 # dynamically whitelists the runner's IP via the cPanel API before
 # attempting SSH (see https://faq.o2switch.fr/cpanel/outils/exception-parefeu/).
 #
+# Two jobs, not one long list of steps:
+#   build  — checkout, composer install --no-dev, npm build. No secrets, no
+#            SSH. Stages the exact deployable tree (excludes dev-only files)
+#            and uploads it as an artifact.
+#   deploy — downloads that artifact, whitelists the runner's IP, then
+#            rsyncs it to the server over SSH.
+# IMPORTANT: the IP whitelist step and the rsync/ssh steps MUST stay in the
+# SAME job. Every job gets a fresh runner VM with its own public IP — if
+# whitelisting ran in a separate job from the SSH steps, the two would
+# almost certainly run from different IPs and every deploy would fail with
+# "Permission denied" for no obvious reason. Splitting `build` out is safe
+# specifically because it never touches SSH.
+#
 # Required secrets (Settings > Secrets and variables > Actions):
 # - DEPLOY_SSH_KEY          SSH private key (dedicated to deployment, not a personal key)
 # - DEPLOY_SSH_HOST         loris.o2switch.net
@@ -29,8 +42,11 @@ concurrency:
   group: deploy-${{ github.ref }}
 
 jobs:
-  deploy:
+  build:
+    name: Build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v7
 
@@ -67,6 +83,43 @@ jobs:
         run: |
           npm --prefix web/app/themes/custom/tailwind ci
           npm --prefix web/app/themes/custom/tailwind run build
+
+      # Stages the exact tree the deploy job will rsync to the server, built
+      # with a local (non-destructive, no --delete) rsync copy rather than
+      # a raw `cp`, so this exclude list is the single source of truth for
+      # "what never leaves the runner" — dev tooling, secrets, node_modules
+      # (dist/ is already built, the sources aren't needed on the server).
+      # web/app/uploads and web/app/cache are deliberately NOT excluded
+      # here — that exclude belongs to the deploy job's rsync --delete
+      # instead, see the comment there.
+      - name: Stage deployable files
+        run: |
+          mkdir -p /tmp/site
+          rsync -a \
+            --exclude '.git' --exclude '.github' --exclude 'docker' \
+            --exclude 'phpstan.neon.dist' \
+            --exclude '.env' --exclude '.env.*' \
+            --exclude '**/node_modules' --exclude '.DS_Store' --exclude '.idea' --exclude '.vscode' \
+            ./ /tmp/site/
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: site
+          path: /tmp/site
+          retention-days: 1
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: site
+          path: site
 
       # Inline instead of a third-party action: haythem/public-ip is
       # unmaintained (last release 2022, still on the deprecated Node 16
@@ -130,11 +183,10 @@ jobs:
 
       # web/app/uploads and web/app/cache are excluded, not just gitignored:
       # --delete would otherwise wipe live media/cache on the server since
-      # neither exists in this checkout.
+      # neither exists in the build artifact (the "Stage deployable files"
+      # step in the build job never populates them).
       - name: Rsync to o2switch
         run: |
           rsync -avz --delete \
-            --exclude '.git' --exclude '.env' --exclude '.env.deploy*' --exclude 'docker' \
-            --exclude '**/node_modules' --exclude '.DS_Store' --exclude '.idea' --exclude '.vscode' \
             --exclude 'web/app/uploads' --exclude 'web/app/cache' \
-            ./ "${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }}:${{ secrets.DEPLOY_PROJECT_PATH }}/"
+            site/ "${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }}:${{ secrets.DEPLOY_PROJECT_PATH }}/"
