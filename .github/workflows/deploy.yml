@@ -48,7 +48,7 @@ jobs:
       # package archives don't get re-downloaded when composer.lock is
       # unchanged.
       - name: Cache Composer packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.composer/cache
           key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
