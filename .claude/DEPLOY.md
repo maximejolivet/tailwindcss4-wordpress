@@ -12,12 +12,24 @@ runs (see §3) because of a local constraint: not breaking the dev `vendor/`
 
 ## Table of contents
 
-- [1. One-shot cPanel setup (do once)](#1-one-shot-cpanel-setup-do-once)
-- [2. `make deploy` (manual, from your machine)](#2-make-deploy-manual-from-your-machine)
-- [3. GitHub Actions (`deploy.yml`, automatic on push to `main`)](#3-github-actions-deployyml-automatic-on-push-to-main)
-- [4. First deployment — checklist](#4-first-deployment-checklist)
-- [5. Real issues hit and fixed (don't redo these)](#5-real-issues-hit-and-fixed-dont-redo-these)
-- [Related files](#related-files)
+- [🇬🇧 Deployment (o2switch)](#-deployment-o2switch)
+  - [Table of contents](#table-of-contents)
+  - [1. One-shot cPanel setup (do once)](#1-one-shot-cpanel-setup-do-once)
+  - [2. `make deploy` (manual, from your machine)](#2-make-deploy-manual-from-your-machine)
+  - [3. GitHub Actions (`deploy.yml`, automatic on push to `main`)](#3-github-actions-deployyml-automatic-on-push-to-main)
+    - [Required GitHub secrets](#required-github-secrets)
+  - [4. First deployment — checklist](#4-first-deployment--checklist)
+  - [5. Real issues hit and fixed (don't redo these)](#5-real-issues-hit-and-fixed-dont-redo-these)
+  - [Related files](#related-files)
+- [🇫🇷 Déploiement (o2switch)](#-déploiement-o2switch)
+  - [Sommaire](#sommaire)
+  - [1. Config one-shot côté cPanel (à faire une seule fois)](#1-config-one-shot-côté-cpanel-à-faire-une-seule-fois)
+  - [2. `make deploy` (manuel, depuis ta machine)](#2-make-deploy-manuel-depuis-ta-machine)
+  - [3. GitHub Actions (`deploy.yml`, automatique sur push `main`)](#3-github-actions-deployyml-automatique-sur-push-main)
+    - [Secrets GitHub requis](#secrets-github-requis)
+  - [4. Premier déploiement — checklist](#4-premier-déploiement--checklist)
+  - [5. Ennuis réels rencontrés et corrigés (à ne pas refaire)](#5-ennuis-réels-rencontrés-et-corrigés-à-ne-pas-refaire)
+  - [Fichiers concernés](#fichiers-concernés)
 
 ## 1. One-shot cPanel setup (do once)
 
@@ -78,7 +90,7 @@ variables > Actions) — never paste them in chat:
 | Secret | Value |
 |---|---|
 | `DEPLOY_SSH_KEY` | SSH private key **dedicated** to deployment (not a personal key) |
-| `DEPLOY_SSH_HOST` | `loris.o2switch.net` |
+| `DEPLOY_SSH_HOST` | `{{user}}.o2switch.net` |
 | `DEPLOY_SSH_USER` | `{{user}}` |
 | `DEPLOY_PROJECT_PATH` | `/home/{{user}}/repositories/tailwindcss4-wordpress` |
 | `DEPLOY_CPANEL_PASSWORD` | cPanel password — **only** for the SSH whitelist API (port 2083), unrelated to the SSH key |
@@ -152,12 +164,24 @@ le `vendor/` de dev (Pint, Pest) sur la machine du développeur.
 
 ## Sommaire
 
-- [1. Config one-shot côté cPanel (à faire une seule fois)](#1-config-one-shot-côté-cpanel-à-faire-une-seule-fois)
-- [2. `make deploy` (manuel, depuis ta machine)](#2-make-deploy-manuel-depuis-ta-machine)
-- [3. GitHub Actions (`deploy.yml`, automatique sur push `main`)](#3-github-actions-deployyml-automatique-sur-push-main)
-- [4. Premier déploiement — checklist](#4-premier-déploiement-checklist)
-- [5. Ennuis réels rencontrés et corrigés (à ne pas refaire)](#5-ennuis-réels-rencontrés-et-corrigés-à-ne-pas-refaire)
-- [Fichiers concernés](#fichiers-concernés)
+- [🇬🇧 Deployment (o2switch)](#-deployment-o2switch)
+  - [Table of contents](#table-of-contents)
+  - [1. One-shot cPanel setup (do once)](#1-one-shot-cpanel-setup-do-once)
+  - [2. `make deploy` (manual, from your machine)](#2-make-deploy-manual-from-your-machine)
+  - [3. GitHub Actions (`deploy.yml`, automatic on push to `main`)](#3-github-actions-deployyml-automatic-on-push-to-main)
+    - [Required GitHub secrets](#required-github-secrets)
+  - [4. First deployment — checklist](#4-first-deployment--checklist)
+  - [5. Real issues hit and fixed (don't redo these)](#5-real-issues-hit-and-fixed-dont-redo-these)
+  - [Related files](#related-files)
+- [🇫🇷 Déploiement (o2switch)](#-déploiement-o2switch)
+  - [Sommaire](#sommaire)
+  - [1. Config one-shot côté cPanel (à faire une seule fois)](#1-config-one-shot-côté-cpanel-à-faire-une-seule-fois)
+  - [2. `make deploy` (manuel, depuis ta machine)](#2-make-deploy-manuel-depuis-ta-machine)
+  - [3. GitHub Actions (`deploy.yml`, automatique sur push `main`)](#3-github-actions-deployyml-automatique-sur-push-main)
+    - [Secrets GitHub requis](#secrets-github-requis)
+  - [4. Premier déploiement — checklist](#4-premier-déploiement--checklist)
+  - [5. Ennuis réels rencontrés et corrigés (à ne pas refaire)](#5-ennuis-réels-rencontrés-et-corrigés-à-ne-pas-refaire)
+  - [Fichiers concernés](#fichiers-concernés)
 
 ## 1. Config one-shot côté cPanel (à faire une seule fois)
 
@@ -218,7 +242,7 @@ variables > Actions) — jamais en clair dans le chat :
 | Secret | Valeur |
 |---|---|
 | `DEPLOY_SSH_KEY` | Clé privée SSH **dédiée** au déploiement (pas la clé perso) |
-| `DEPLOY_SSH_HOST` | `loris.o2switch.net` |
+| `DEPLOY_SSH_HOST` | `{{user}}.o2switch.net` |
 | `DEPLOY_SSH_USER` | `{{user}}` |
 | `DEPLOY_PROJECT_PATH` | `/home/{{user}}/repositories/tailwindcss4-wordpress` |
 | `DEPLOY_CPANEL_PASSWORD` | Mot de passe cPanel — **uniquement** pour l'API de whitelist SSH (port 2083), sans rapport avec la clé SSH |

@@ -19,7 +19,7 @@
 #
 # Required secrets (Settings > Secrets and variables > Actions):
 # - DEPLOY_SSH_KEY          SSH private key (dedicated to deployment, not a personal key)
-# - DEPLOY_SSH_HOST         loris.o2switch.net
+# - DEPLOY_SSH_HOST         {{user}}.o2switch.net
 # - DEPLOY_SSH_USER         {{user}} (cPanel username)
 # - DEPLOY_PROJECT_PATH     /home/{{user}}/repositories/tailwindcss4-wordpress
 # - DEPLOY_CPANEL_PASSWORD  cPanel password — ONLY used for the SSH whitelist
