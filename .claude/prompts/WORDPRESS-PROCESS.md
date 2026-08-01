@@ -1,7 +1,7 @@
 # 🇬🇧 Execution journal — Twig components / Tailwind v4 / ACF Flexible Content
 
 This document tracks the real state of the project against the
-mission described in [`WORDPRESS.md`](./WORDPRESS.md): Twig components,
+mission described in [`wordpress-mission-brief.md`](./wordpress-mission-brief.md): Twig components,
 ACF Flexible Content page builder, Polylang multilingual. Unlike
 `DRUPAL-PROCESS.md` (the previous version of this document, which documented
 a Drupal project where the mission had been fully executed and verified),
@@ -27,8 +27,8 @@ below), never by re-reading the code.
 
 ## 0. Starting point (verified in the repo as of 2026-07-31)
 
-What already exists, documented in detail in [`theme.md`](../theme.md)
-and [`docker.md`](../docker.md):
+What already exists, documented in detail in [`THEME.md`](../THEME.md)
+and [`DOCKER.md`](../DOCKER.md):
 
 - Bedrock scaffold (`composer.json`, `config/`, `web/wp`, `web/app`), PHP
   ≥ 8.4, Docker Compose (Traefik, PHP/Apache, MariaDB, node, phpMyAdmin,
@@ -48,7 +48,7 @@ and [`docker.md`](../docker.md):
   (`@import "tailwindcss"`, `@plugin "@tailwindcss/typography"`, `@source`
   on `views/**/*.twig` and `**/*.php`), `assets/scripts/app.js`, dev/prod
   switch in `inc/vite.php`, HMR with the `phpTwigReload` plugin +
-  `usePolling` (issues fixed, documented in `theme.md`, not to
+  `usePolling` (issues fixed, documented in `THEME.md`, not to
   redo here)
 - `composer.json`: `lint` (Pint) and `test` (Pest) scripts already declared,
   but **no Pest test written**, no GitHub Actions CI
@@ -76,7 +76,7 @@ infer from a journal written in the past tense):
 - [ ] add Prettier + `prettier-plugin-tailwindcss`, ESLint, to the theme's
   `devDependencies` (`package.json`)
 - [ ] script validating the components' props headers (§3 of
-  `WORDPRESS.md`)
+  `wordpress-mission-brief.md`)
 
 ## 2. Design tokens — done (2026-07-31)
 
@@ -141,7 +141,7 @@ infer from a journal written in the past tense):
    `only` from the `{% embed %}` tag (the `card` component itself only
    receives `variant` anyway; it's the `{% include %}` calls *inside*
    the slots that keep their own `only` and stay isolated). Carried over
-   into `WORDPRESS.md` §3 and `card/README.md`.
+   into `wordpress-mission-brief.md` §3 and `card/README.md`.
 2. **`site.theme.link`** (Twig property/method of `Timber\Theme`) resolves
    correctly once point 1 is fixed — confirmed via `wp eval-file`:
    `$theme->link()` correctly returns the theme's absolute URI
@@ -156,35 +156,35 @@ infer from a journal written in the past tense):
 - [x] plugins installed and activated — **with a naming fix
   discovered while trying**: the real Composer package name is
   `wp-plugin/<slug>`, NOT `wpackagist-plugin/<slug>` as
-  `docker.md` originally claimed (`composer require
+  `DOCKER.md` originally claimed (`composer require
   wpackagist-plugin/secure-custom-fields` fails with "package not found";
   `composer show wp-plugin/polylang --all` confirms it). Not a
   quirk of this repo: since Bedrock 1.30, [WP Packages](https://roots.io/wp-composer-is-now-wp-packages/)
   (`repo.wp-packages.org`, declared in `composer.json`) is the
-  **official** package source replacing WPackagist. `docker.md` and the
+  **official** package source replacing WPackagist. `DOCKER.md` and the
   root `README.md` have been corrected since.
 - [x] `wp-plugin/advanced-custom-fields-pro` **doesn't exist** on WP Packages
   (ACF Pro is a paid plugin, never distributed via the wordpress.org SVN
   that this source mirrors — makes sense, but worth checking before assuming
-  `WORDPRESS.md`'s §7 mission installs as-is). Installed
+  `wordpress-mission-brief.md`'s §7 mission installs as-is). Installed
   `wp-plugin/secure-custom-fields` instead, the fallback option already
-  documented in `WORDPRESS.md` §7 for this case — flexible content is
+  documented in `wordpress-mission-brief.md` §7 for this case — flexible content is
   indeed available there (Secure Custom Fields = ACF's core features
   turned free/native, see `wp plugin get secure-custom-fields`)
 - [x] `wp-plugin/polylang` installed and activated (`make wp ARGS="plugin
   activate secure-custom-fields polylang"`, confirmed by `wp plugin list`)
 - [x] `sections` flexible content field created on `page`, with the exact
-  nested structure from `WORDPRESS.md` §7d: top-level = `hero` (max 1) +
+  nested structure from `wordpress-mission-brief.md` §7d: top-level = `hero` (max 1) +
   `section` only; `section` contains a `columns` (select 1/2/3) and a
   nested flexible content `content` with the 5 layouts `text_media`,
   `cards_grid`, `cta_banner`, `accordion`, `embed`
 - [x] **registered in PHP** (`inc/acf-fields.php`, `acf_add_local_field_group`
   on the `acf/init` hook), **not** via the UI + Local JSON export
-  (`acf-json/`) as `WORDPRESS.md` §7 originally planned — deliberate
+  (`acf-json/`) as `wordpress-mission-brief.md` §7 originally planned — deliberate
   deviation: building 7 nested layouts by mouse via browser
   automation is slow and fragile (dozens of clicks), whereas
   declaring it in PHP is just as versioned in git, faster and more reliable to
-  audit/evolve. `WORDPRESS.md` §7 updated accordingly.
+  audit/evolve. `wordpress-mission-brief.md` §7 updated accordingly.
 - [x] verified in the admin: only `Hero` and `Section (columns)` offered
   at the top level (`section`/`text_media`/etc. absent, consistent with
   the editorial rule); `Hero` grayed out after a first addition (native "max 1"
@@ -243,7 +243,7 @@ infer from a journal written in the past tense):
   the new page's ACF form before any save. Published
   (`Sample Page (EN)`, post `15`) and checked on `/en/sample-page-en/`:
   render identical to FR (untranslated, the content is literally copied).
-  **Correction of a `WORDPRESS.md` §7a assumption**: copying the
+  **Correction of a `wordpress-mission-brief.md` §7a assumption**: copying the
   structure when the translation is created is a **Polylang free
   default behavior** (no per-field sync setting was configured on
   the ACF group, registered in PHP with no dedicated Polylang screen) — no
@@ -262,7 +262,7 @@ infer from a journal written in the past tense):
 - [x] **`Hide URL language information for default language` unchecked** —
   deliberately unchecked in *Settings > Languages > URL modifications*.
   By default Polylang checks this box (FR, the default language, then has
-  no `/fr/` prefix); `WORDPRESS.md` §8 explicitly asks for symmetric
+  no `/fr/` prefix); `wordpress-mission-brief.md` §8 explicitly asks for symmetric
   `/fr` and `/en` prefixes on both languages (faithful to the original
   Drupal requirement), hence unchecking it
   — verified: `/` redirects to `/fr/`, `/en/` responds 200
@@ -321,7 +321,7 @@ mentioned here so it's not later mistaken for a regression.
 # 🇫🇷 Journal d'exécution — Composants Twig / Tailwind v4 / ACF Flexible Content
 
 Ce document retrace, en français, l'état réel du projet par rapport à la
-mission décrite dans [`WORDPRESS.md`](./WORDPRESS.md) : composants Twig,
+mission décrite dans [`wordpress-mission-brief.md`](./wordpress-mission-brief.md) : composants Twig,
 page builder ACF Flexible Content, multilingue Polylang. Contrairement à
 `DRUPAL-PROCESS.md` (l'ancienne version de ce document, qui documentait un
 projet Drupal où la mission avait été intégralement exécutée et vérifiée),
@@ -347,8 +347,8 @@ ci-dessous), jamais en relisant le code.
 
 ## 0. État de départ (vérifié dans le dépôt au 2026-07-31)
 
-Ce qui existe déjà, documenté en détail dans [`theme.md`](../theme.md)
-et [`docker.md`](../docker.md) :
+Ce qui existe déjà, documenté en détail dans [`THEME.md`](../THEME.md)
+et [`DOCKER.md`](../DOCKER.md) :
 
 - Scaffold Bedrock (`composer.json`, `config/`, `web/wp`, `web/app`), PHP
   ≥ 8.4, Docker Compose (Traefik, PHP/Apache, MariaDB, node, phpMyAdmin,
@@ -368,7 +368,7 @@ et [`docker.md`](../docker.md) :
   (`@import "tailwindcss"`, `@plugin "@tailwindcss/typography"`, `@source`
   sur `views/**/*.twig` et `**/*.php`), `assets/scripts/app.js`, bascule
   dev/prod dans `inc/vite.php`, HMR avec plugin `phpTwigReload` +
-  `usePolling` (problèmes résolus documentés dans `theme.md`, pas à
+  `usePolling` (problèmes résolus documentés dans `THEME.md`, pas à
   refaire ici)
 - `composer.json` : scripts `lint` (Pint) et `test` (Pest) déjà déclarés,
   mais **aucun test Pest écrit**, aucune CI GitHub Actions
@@ -396,7 +396,7 @@ déduire d'un journal rédigé au passé) :
 - [ ] ajouter Prettier + `prettier-plugin-tailwindcss`, ESLint, aux
   `devDependencies` du thème (`package.json`)
 - [ ] script de validation des en-têtes de props des composants (§3 de
-  `WORDPRESS.md`)
+  `wordpress-mission-brief.md`)
 
 ## 2. Design tokens — fait (2026-07-31)
 
@@ -460,7 +460,7 @@ déduire d'un journal rédigé au passé) :
    `only` du tag `{% embed %}` (le composant `card` lui-même ne reçoit que
    `variant` de toute façon ; ce sont les `{% include %}` *à l'intérieur*
    des slots qui gardent leur propre `only` et restent isolés). Répercuté
-   dans `WORDPRESS.md` §3 et `card/README.md`.
+   dans `wordpress-mission-brief.md` §3 et `card/README.md`.
 2. **`site.theme.link`** (propriété/méthode Twig de `Timber\Theme`) résout
    correctement une fois le point 1 corrigé — confirmé via `wp eval-file` :
    `$theme->link()` retourne bien l'URI absolue du thème
@@ -475,35 +475,35 @@ déduire d'un journal rédigé au passé) :
 - [x] plugins installés et activés — **avec un correctif de composition
   découvert en essayant** : le nom de paquet Composer réel est
   `wp-plugin/<slug>`, PAS `wpackagist-plugin/<slug>` comme l'affirmait
-  `docker.md` à l'origine (`composer require
+  `DOCKER.md` à l'origine (`composer require
   wpackagist-plugin/secure-custom-fields` échoue avec « package introuvable » ;
   `composer show wp-plugin/polylang --all` le confirme). Pas une
   bizarrerie de ce dépôt : depuis Bedrock 1.30, [WP Packages](https://roots.io/wp-composer-is-now-wp-packages/)
   (`repo.wp-packages.org`, déclaré dans `composer.json`) est la source de
-  paquets **officielle** qui remplace WPackagist. `docker.md` et le
+  paquets **officielle** qui remplace WPackagist. `DOCKER.md` et le
   `README.md` racine corrigés depuis.
 - [x] `wp-plugin/advanced-custom-fields-pro` **n'existe pas** sur WP Packages
   (ACF Pro est un plugin payant, jamais distribué via le SVN wordpress.org
   que cette source reflète — logique, mais à vérifier avant de supposer que
-  la mission §7 de `WORDPRESS.md` s'installe telle quelle). Installé
+  la mission §7 de `wordpress-mission-brief.md` s'installe telle quelle). Installé
   `wp-plugin/secure-custom-fields` à la place, l'option de repli déjà
-  documentée dans `WORDPRESS.md` §7 pour ce cas — flexible content y est
+  documentée dans `wordpress-mission-brief.md` §7 pour ce cas — flexible content y est
   bien disponible (Secure Custom Fields = les fonctionnalités cœur d'ACF
   passées gratuites/natives, cf. `wp plugin get secure-custom-fields`)
 - [x] `wp-plugin/polylang` installé et activé (`make wp ARGS="plugin
   activate secure-custom-fields polylang"`, confirmé par `wp plugin list`)
 - [x] champ flexible content `sections` créé sur `page`, avec la structure
-  imbriquée exacte du §7d de `WORDPRESS.md` : top-level = `hero` (max 1) +
+  imbriquée exacte du §7d de `wordpress-mission-brief.md` : top-level = `hero` (max 1) +
   `section` seulement ; `section` contient un `columns` (select 1/2/3) et un
   flexible content imbriqué `content` avec les 5 layouts `text_media`,
   `cards_grid`, `cta_banner`, `accordion`, `embed`
 - [x] **enregistré en PHP** (`inc/acf-fields.php`, `acf_add_local_field_group`
   sur le hook `acf/init`), **pas** via l'UI + export Local JSON
-  (`acf-json/`) comme le prévoyait `WORDPRESS.md` §7 au départ — écart
+  (`acf-json/`) comme le prévoyait `wordpress-mission-brief.md` §7 au départ — écart
   assumé : construire 7 layouts imbriqués à la souris via de l'automatisation
   navigateur est lent et fragile (des dizaines de clics), alors que le
   déclarer en PHP est aussi versionné dans git, plus rapide et plus fiable à
-  auditer/faire évoluer. `WORDPRESS.md` §7 mis à jour en conséquence.
+  auditer/faire évoluer. `wordpress-mission-brief.md` §7 mis à jour en conséquence.
 - [x] vérifié dans l'admin : seuls `Hero` et `Section (colonnes)` proposés
   au premier niveau (`section`/`text_media`/etc. absents, conforme à la
   règle éditoriale) ; `Hero` grisé après un premier ajout (garde-fou "max 1"
@@ -562,7 +562,7 @@ déduire d'un journal rédigé au passé) :
   formulaire ACF de la nouvelle page avant toute sauvegarde. Publiée
   (`Sample Page (EN)`, post `15`) et vérifiée sur `/en/sample-page-en/` :
   rendu identique au FR (non traduit, c'est le contenu littéralement copié).
-  **Correction d'une hypothèse de `WORDPRESS.md` §7a** : la copie de
+  **Correction d'une hypothèse de `wordpress-mission-brief.md` §7a** : la copie de
   structure au moment de la création de la traduction est un comportement
   **Polylang gratuit par défaut** (aucun réglage de synchronisation par
   champ n'a été configuré sur le groupe ACF, enregistré en PHP sans écran
@@ -581,7 +581,7 @@ déduire d'un journal rédigé au passé) :
 - [x] **`Hide URL language information for default language` décoché** —
   décoché volontairement dans `Réglages > Langues > URL modifications`.
   Par défaut Polylang coche cette case (le FR, langue par défaut, n'a
-  alors pas de préfixe `/fr/`) ; `WORDPRESS.md` §8 demande explicitement
+  alors pas de préfixe `/fr/`) ; `wordpress-mission-brief.md` §8 demande explicitement
   des préfixes `/fr` et `/en` symétriques sur les deux langues (fidèle à
   l'exigence du Drupal d'origine), d'où le décochage
   — vérifié : `/` redirige vers `/fr/`, `/en/` répond 200

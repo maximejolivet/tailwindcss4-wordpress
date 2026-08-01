@@ -56,13 +56,13 @@ docker compose -f docker/docker-compose.yml --project-directory . exec php \
   composer require wp-plugin/<slug>
 ```
 
-Currently installed: `wp-plugin/secure-custom-fields` (ACF-compatible custom fields, powers the page builder — see [`.claude/theme.md`](.claude/theme.md)) and `wp-plugin/polylang` (FR/EN multilingual).
+Currently installed: `wp-plugin/secure-custom-fields` (ACF-compatible custom fields, powers the page builder — see [`.claude/THEME.md`](.claude/THEME.md)) and `wp-plugin/polylang` (FR/EN multilingual).
 
 ## Custom theme (`web/app/themes/custom/tailwind`)
 
 A custom theme built with [Timber v2](https://timber.github.io/docs/v2/) (Twig templates, `views/`) and Tailwind CSS 4 via Vite, with a reusable Twig component library (`views/components/`, atoms/molecules/organisms) and an ACF Flexible Content page builder (`inc/acf-fields.php`).
 
-See [`.claude/theme.md`](.claude/theme.md) for the theme's architecture, Timber/Twig conventions and HMR setup, and the **Commands** section below for `vite-*` targets.
+See [`.claude/THEME.md`](.claude/THEME.md) for the theme's architecture, Timber/Twig conventions and HMR setup, and the **Commands** section below for `vite-*` targets.
 
 ## Commands
 
@@ -101,7 +101,7 @@ All commands run via `make` from the repo root (see `Makefile`; run `make help` 
 | `make vite-build` | Build production assets (`web/app/themes/custom/tailwind/dist/`) |
 | `make npm ARGS="..."` | Run an arbitrary npm command in the theme, e.g. `make npm ARGS="run build"` |
 
-### Deployment (o2switch — see [`.claude/deploy.md`](.claude/deploy.md))
+### Deployment (o2switch — see [`.claude/DEPLOY.md`](.claude/DEPLOY.md))
 
 | Command | Effect |
 |---|---|
@@ -175,13 +175,13 @@ docker compose -f docker/docker-compose.yml --project-directory . exec php \
   composer require wp-plugin/<slug>
 ```
 
-Actuellement installés : `wp-plugin/secure-custom-fields` (champs personnalisés compatibles ACF, alimente le page builder — voir [`.claude/theme.md`](.claude/theme.md)) et `wp-plugin/polylang` (multilingue FR/EN).
+Actuellement installés : `wp-plugin/secure-custom-fields` (champs personnalisés compatibles ACF, alimente le page builder — voir [`.claude/THEME.md`](.claude/THEME.md)) et `wp-plugin/polylang` (multilingue FR/EN).
 
 ## Thème custom (`web/app/themes/custom/tailwind`)
 
 Un thème custom construit avec [Timber v2](https://timber.github.io/docs/v2/) (templates Twig, `views/`) et Tailwind CSS 4 via Vite, avec une librairie de composants Twig réutilisables (`views/components/`, atoms/molecules/organisms) et un page builder ACF Flexible Content (`inc/acf-fields.php`).
 
-Voir [`.claude/theme.md`](.claude/theme.md) pour l'architecture du thème, les conventions Timber/Twig et la configuration HMR, et la section **Commandes** ci-dessous pour les cibles `vite-*`.
+Voir [`.claude/THEME.md`](.claude/THEME.md) pour l'architecture du thème, les conventions Timber/Twig et la configuration HMR, et la section **Commandes** ci-dessous pour les cibles `vite-*`.
 
 ## Commandes
 
@@ -220,7 +220,7 @@ Toutes les commandes s'exécutent via `make` depuis la racine du repo (voir `Mak
 | `make vite-build` | Construit les assets de production (`web/app/themes/custom/tailwind/dist/`) |
 | `make npm ARGS="..."` | Exécute une commande npm arbitraire dans le thème, ex. `make npm ARGS="run build"` |
 
-### Déploiement (o2switch — voir [`.claude/deploy.md`](.claude/deploy.md))
+### Déploiement (o2switch — voir [`.claude/DEPLOY.md`](.claude/DEPLOY.md))
 
 | Commande | Effet |
 |---|---|

@@ -80,7 +80,7 @@ Reusable component library, organized into `01-atoms/`,
 | `embed` | organism | raw third-party content (iframe, social embed) |
 
 Convention (documented in each component, see also
-[`prompts/WORDPRESS.md`](prompts/WORDPRESS.md) §3):
+[`prompts/WORDPRESS-MISSION-BRIEF.md`](prompts/WORDPRESS-MISSION-BRIEF.md) §3):
 - props documented in a Twig comment at the top of the file (no
   automatically validated schema, Twig has no equivalent to Drupal's
   Single Directory Components)
@@ -103,7 +103,7 @@ via the UI + Local JSON export — faster and more reliable to evolve) a
 
 `views/templates/page.twig` does the pure ACF layout → Twig component
 mapping (zero structural HTML outside the `section` grid); see
-[`prompts/WORDPRESS.md`](prompts/WORDPRESS.md) §7 for the full detail
+[`prompts/WORDPRESS-MISSION-BRIEF.md`](prompts/WORDPRESS-MISSION-BRIEF.md) §7 for the full detail
 and [`prompts/WORDPRESS-PROCESS.md`](prompts/WORDPRESS-PROCESS.md) for
 the real bugs hit while building it.
 
@@ -111,7 +111,7 @@ the real bugs hit while building it.
 
 FR (default) + EN, symmetric `/fr/` and `/en/` prefixes on both
 languages, URL-only detection. See
-[`prompts/WORDPRESS.md`](prompts/WORDPRESS.md) §8 for the config and the
+[`prompts/WORDPRESS-MISSION-BRIEF.md`](prompts/WORDPRESS-MISSION-BRIEF.md) §8 for the config and the
 translation workflow (copying the `sections` structure when a translation
 is created is Polylang's native free behavior, no need for Polylang Pro).
 
@@ -343,9 +343,9 @@ composer dump-autoload
 
 ## See also
 
-- [`prompts/WORDPRESS.md`](prompts/WORDPRESS.md) — full mission (components, page builder, multilingual)
+- [`prompts/WORDPRESS-MISSION-BRIEF.md`](prompts/WORDPRESS-MISSION-BRIEF.md) — full mission (components, page builder, multilingual)
 - [`prompts/WORDPRESS-PROCESS.md`](prompts/WORDPRESS-PROCESS.md) — real execution journal (bugs found by testing, not by re-reading the code)
-- [`deploy.md`](deploy.md) — o2switch deployment (manual and CI GitHub Actions)
+- [`DEPLOY.md`](DEPLOY.md) — o2switch deployment (manual and CI GitHub Actions)
 
 ---
 
@@ -431,7 +431,7 @@ Bibliothèque de composants réutilisables, organisée en `01-atoms/`,
 | `embed` | organism | contenu tiers brut (iframe, embed réseau social) |
 
 Convention (documentée dans chaque composant, voir aussi
-[`prompts/WORDPRESS.md`](prompts/WORDPRESS.md) §3) :
+[`prompts/WORDPRESS-MISSION-BRIEF.md`](prompts/WORDPRESS-MISSION-BRIEF.md) §3) :
 - props documentées en commentaire Twig en tête de fichier (pas de schéma
   validé automatiquement, Twig n'a pas d'équivalent aux Single Directory
   Components de Drupal)
@@ -454,7 +454,7 @@ champ Flexible Content `sections` sur le post type `page` :
 
 `views/templates/page.twig` fait le mapping pur layout ACF → composant Twig
 (zéro HTML de structure en dehors de la grille de `section`) ; voir
-[`prompts/WORDPRESS.md`](prompts/WORDPRESS.md) §7 pour le détail complet
+[`prompts/WORDPRESS-MISSION-BRIEF.md`](prompts/WORDPRESS-MISSION-BRIEF.md) §7 pour le détail complet
 et [`prompts/WORDPRESS-PROCESS.md`](prompts/WORDPRESS-PROCESS.md) pour
 les bugs réels rencontrés en le construisant.
 
@@ -462,7 +462,7 @@ les bugs réels rencontrés en le construisant.
 
 FR (défaut) + EN, préfixes `/fr/` et `/en/` symétriques sur les deux
 langues, détection URL uniquement. Voir
-[`prompts/WORDPRESS.md`](prompts/WORDPRESS.md) §8 pour la config et le
+[`prompts/WORDPRESS-MISSION-BRIEF.md`](prompts/WORDPRESS-MISSION-BRIEF.md) §8 pour la config et le
 workflow de traduction (la copie de structure `sections` à la création
 d'une traduction est un comportement Polylang gratuit natif, pas besoin de
 Polylang Pro).
@@ -695,6 +695,6 @@ composer dump-autoload
 
 ## Voir aussi
 
-- [`prompts/WORDPRESS.md`](prompts/WORDPRESS.md) — mission complète (composants, page builder, multilingue)
+- [`prompts/WORDPRESS-MISSION-BRIEF.md`](prompts/WORDPRESS-MISSION-BRIEF.md) — mission complète (composants, page builder, multilingue)
 - [`prompts/WORDPRESS-PROCESS.md`](prompts/WORDPRESS-PROCESS.md) — journal réel d'exécution (bugs trouvés en testant, pas en relisant le code)
-- [`deploy.md`](deploy.md) — déploiement o2switch (manuel et CI GitHub Actions)
+- [`DEPLOY.md`](DEPLOY.md) — déploiement o2switch (manuel et CI GitHub Actions)

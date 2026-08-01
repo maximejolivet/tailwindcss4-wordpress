@@ -37,7 +37,7 @@ FR (default) + EN, symmetric `/fr/`/`/en/` prefixes, URL-only detection (no brow
 
 ## Deployment (o2switch)
 
-See @.claude/deploy.md for the full pipeline. The one gotcha worth repeating here: the subdomain's document root must point at `<repo>/web`, **never** `web/wp` (that's only the Composer-installed WP core, without Bedrock's `index.php`/`wp-config.php`/`.htaccess` bootstrap).
+See @.claude/DEPLOY.md for the full pipeline. The one gotcha worth repeating here: the subdomain's document root must point at `<repo>/web`, **never** `web/wp` (that's only the Composer-installed WP core, without Bedrock's `index.php`/`wp-config.php`/`.htaccess` bootstrap).
 
 ---
 
@@ -76,4 +76,4 @@ FR (défaut) + EN, préfixes `/fr/`/`/en/` symétriques, détection URL uniqueme
 
 ## Déploiement (o2switch)
 
-Voir @.claude/deploy.md pour le pipeline complet. Le seul piège qui mérite d'être répété ici : le document root du sous-domaine doit pointer sur `<repo>/web`, **jamais** `web/wp` (qui n'est que le cœur WP installé par Composer, sans le bootstrap `index.php`/`wp-config.php`/`.htaccess` de Bedrock).
+Voir @.claude/DEPLOY.md pour le pipeline complet. Le seul piège qui mérite d'être répété ici : le document root du sous-domaine doit pointer sur `<repo>/web`, **jamais** `web/wp` (qui n'est que le cœur WP installé par Composer, sans le bootstrap `index.php`/`wp-config.php`/`.htaccess` de Bedrock).

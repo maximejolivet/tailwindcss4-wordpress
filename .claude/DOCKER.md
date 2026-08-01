@@ -1,6 +1,6 @@
 # 🇬🇧 Docker commands
 
-> For the custom theme (Timber v2 + Tailwind CSS 4 + Vite, components, ACF page builder, Polylang multilingual), see [`theme.md`](theme.md). For production deployment (o2switch), see [`deploy.md`](deploy.md).
+> For the custom theme (Timber v2 + Tailwind CSS 4 + Vite, components, ACF page builder, Polylang multilingual), see [`THEME.md`](THEME.md). For production deployment (o2switch), see [`DEPLOY.md`](DEPLOY.md).
 
 Local development environment based on `docker/docker-compose.yml` (services: `traefik`, `php`, `database`, `node`, `phpmyadmin`, `mailhog`, `dockhand`), for a WordPress [Bedrock](https://roots.io/bedrock/) project (repo root = Bedrock root: `composer.json`, `config/`, `web/wp` for WordPress core, `web/app` for themes/plugins/uploads).
 
@@ -136,7 +136,7 @@ If Dockhand authentication is enabled, set `DOCKHAND_USER` and `DOCKHAND_PASSWOR
 
 # 🇫🇷 Commandes Docker
 
-> Pour le thème custom (Timber v2 + Tailwind CSS 4 + Vite, composants, page builder ACF, multilingue Polylang), voir [`theme.md`](theme.md). Pour le déploiement en production (o2switch), voir [`deploy.md`](deploy.md).
+> Pour le thème custom (Timber v2 + Tailwind CSS 4 + Vite, composants, page builder ACF, multilingue Polylang), voir [`THEME.md`](THEME.md). Pour le déploiement en production (o2switch), voir [`DEPLOY.md`](DEPLOY.md).
 
 Environnement de développement local basé sur `docker/docker-compose.yml` (services : `traefik`, `php`, `database`, `node`, `phpmyadmin`, `mailhog`, `dockhand`), pour un projet WordPress [Bedrock](https://roots.io/bedrock/) (racine du repo = racine Bedrock : `composer.json`, `config/`, `web/wp` pour le cœur WordPress, `web/app` pour thèmes/plugins/uploads).
 

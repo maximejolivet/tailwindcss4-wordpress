@@ -37,7 +37,7 @@ jobs:
       # vendor/ is built here (on the runner) rather than on the server:
       # a fresh checkout has no dev vendor/ to accidentally wipe, unlike a
       # developer's machine running `composer install --no-dev` locally
-      # (see .claude/deploy.md §3 for why `make deploy` does the opposite).
+      # (see .claude/DEPLOY.md §3 for why `make deploy` does the opposite).
       - name: Install PHP dependencies
         uses: shivammathur/setup-php@v2
         with:

@@ -15,7 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Bedrock WordPress site (PHP ≥8.4) with a custom Timber v2 + Tailwind CSS v4 + Vite theme (`web/app/themes/custom/tailwind`). Runs in Docker Compose (Traefik, PHP, MariaDB, Node) — see @.claude/docker.md and @docker/README.md.
+Bedrock WordPress site (PHP ≥8.4) with a custom Timber v2 + Tailwind CSS v4 + Vite theme (`web/app/themes/custom/tailwind`). Runs in Docker Compose (Traefik, PHP, MariaDB, Node) — see @.claude/DOCKER.md and @docker/README.md.
 
 ## Commands
 
@@ -27,7 +27,7 @@ This repo's Composer mirror (`repo.wp-packages.org`, declared in `composer.json`
 
 ## Custom theme
 
-Detailed WordPress/Bedrock/Twig/ACF/Polylang conventions: @.claude/rules/wordpress.md. Full architecture: @.claude/theme.md.
+Detailed WordPress/Bedrock/Twig/ACF/Polylang conventions: @.claude/WORDPRESS.md. Full architecture: @.claude/THEME.md.
 
 ## Linting
 
@@ -35,11 +35,11 @@ PHP: `composer lint` (Pint, `pint.json`, preset `per`) / `composer test` (Pest �
 
 ## Documentation
 
-- [`.claude/docker.md`](.claude/docker.md) — day-to-day Docker commands (start/stop/logs, container access, database)
+- [`.claude/DOCKER.md`](.claude/DOCKER.md) — day-to-day Docker commands (start/stop/logs, container access, database)
 - [`docker/README.md`](docker/README.md) — environment details (Colima, Traefik, certificates, Bedrock/Composer/WP-CLI)
-- [`.claude/theme.md`](.claude/theme.md) — custom theme: Timber v2 + Tailwind CSS 4 + Vite (architecture, components, page builder, HMR)
-- [`.claude/deploy.md`](.claude/deploy.md) — production deployment (o2switch, manual and GitHub Actions CI)
-- [`.claude/prompts/WORDPRESS.md`](.claude/prompts/WORDPRESS.md) / [`WORDPRESS-PROCESS.md`](.claude/prompts/WORDPRESS-PROCESS.md) — full mission spec and real execution journal
+- [`.claude/THEME.md`](.claude/THEME.md) — custom theme: Timber v2 + Tailwind CSS 4 + Vite (architecture, components, page builder, HMR)
+- [`.claude/DEPLOY.md`](.claude/DEPLOY.md) — production deployment (o2switch, manual and GitHub Actions CI)
+- [`.claude/prompts/WORDPRESS-MISSION-BRIEF.md`](.claude/prompts/WORDPRESS-MISSION-BRIEF.md) / [`WORDPRESS-PROCESS.md`](.claude/prompts/WORDPRESS-PROCESS.md) — full mission spec and real execution journal
 
 ---
 
@@ -58,7 +58,7 @@ Ce fichier fournit des indications à Claude Code (claude.ai/code) pour travaill
 
 ## Projet
 
-Site WordPress Bedrock (PHP ≥8.4) avec un thème custom Timber v2 + Tailwind CSS v4 + Vite (`web/app/themes/custom/tailwind`). Tourne dans Docker Compose (Traefik, PHP, MariaDB, Node) — voir @.claude/docker.md et @docker/README.md.
+Site WordPress Bedrock (PHP ≥8.4) avec un thème custom Timber v2 + Tailwind CSS v4 + Vite (`web/app/themes/custom/tailwind`). Tourne dans Docker Compose (Traefik, PHP, MariaDB, Node) — voir @.claude/DOCKER.md et @docker/README.md.
 
 ## Commandes
 
@@ -70,7 +70,7 @@ Le miroir Composer de ce repo (`repo.wp-packages.org`, déclaré dans `composer.
 
 ## Thème custom
 
-Conventions détaillées WordPress/Bedrock/Twig/ACF/Polylang : @.claude/rules/wordpress.md. Architecture complète : @.claude/theme.md.
+Conventions détaillées WordPress/Bedrock/Twig/ACF/Polylang : @.claude/WORDPRESS.md. Architecture complète : @.claude/THEME.md.
 
 ## Linting
 
@@ -78,8 +78,8 @@ PHP : `composer lint` (Pint, `pint.json`, préréglage `per`) / `composer test` 
 
 ## Documentation
 
-- [`.claude/docker.md`](.claude/docker.md) — commandes Docker au quotidien (start/stop/logs, accès aux conteneurs, base de données)
+- [`.claude/DOCKER.md`](.claude/DOCKER.md) — commandes Docker au quotidien (start/stop/logs, accès aux conteneurs, base de données)
 - [`docker/README.md`](docker/README.md) — détails de l'environnement (Colima, Traefik, certificats, Bedrock/Composer/WP-CLI)
-- [`.claude/theme.md`](.claude/theme.md) — thème custom Timber v2 + Tailwind CSS 4 + Vite (architecture, composants, page builder, HMR)
-- [`.claude/deploy.md`](.claude/deploy.md) — déploiement en production (o2switch, manuel et CI GitHub Actions)
-- [`.claude/prompts/WORDPRESS.md`](.claude/prompts/WORDPRESS.md) / [`WORDPRESS-PROCESS.md`](.claude/prompts/WORDPRESS-PROCESS.md) — mission complète et journal d'exécution réel
+- [`.claude/THEME.md`](.claude/THEME.md) — thème custom Timber v2 + Tailwind CSS 4 + Vite (architecture, composants, page builder, HMR)
+- [`.claude/DEPLOY.md`](.claude/DEPLOY.md) — déploiement en production (o2switch, manuel et CI GitHub Actions)
+- [`.claude/prompts/WORDPRESS-MISSION-BRIEF.md`](.claude/prompts/WORDPRESS-MISSION-BRIEF.md) / [`WORDPRESS-PROCESS.md`](.claude/prompts/WORDPRESS-PROCESS.md) — mission complète et journal d'exécution réel
