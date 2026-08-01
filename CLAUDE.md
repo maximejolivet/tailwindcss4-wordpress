@@ -31,7 +31,12 @@ Detailed WordPress/Bedrock/Twig/ACF/Polylang conventions: @.claude/WORDPRESS.md.
 
 ## Linting
 
-PHP: `composer lint` (Pint, `pint.json`, preset `per`) / `composer test` (Pest — no tests written yet). No JS/CSS lint configured yet in the theme.
+PHP quality tooling (composer scripts, also wired as `make` targets — `lint`/`lint-fix`/`phpstan`/`audit`):
+
+- `composer lint` / `lint:fix` — Pint (`pint.json`, preset `per`): formatting/style.
+- `composer phpstan` — PHPStan level 5 (`phpstan.neon.dist`), WordPress/ACF-aware via `szepeviktor/phpstan-wordpress` + `php-stubs/acf-pro-stubs` stubs. Scans `config/`, the custom theme, `web/index.php`, `web/wp-config.php`.
+- `composer audit` — Composer's built-in dependency vulnerability scan. `roave/security-advisories` (dev-only, no real code) additionally blocks `composer install`/`update` from ever pulling in a package version with a known CVE.
+- No test suite, PHPCS/WPCS, PHPMD, or JS/CSS lint configured.
 
 ## Documentation
 
@@ -74,7 +79,14 @@ Conventions détaillées WordPress/Bedrock/Twig/ACF/Polylang : @.claude/WORDPRES
 
 ## Linting
 
-PHP : `composer lint` (Pint, `pint.json`, préréglage `per`) / `composer test` (Pest — aucun test écrit pour l'instant). Aucun lint JS/CSS configuré pour l'instant dans le thème.
+Outillage qualité PHP (scripts composer, aussi disponibles en cibles `make` — `lint`/`lint-fix`/`phpstan`/`audit`) :
+
+- `composer lint` / `lint:fix` — Pint (`pint.json`, préréglage `per`) : formatage/style.
+- `composer phpstan` — PHPStan niveau 5 (`phpstan.neon.dist`), conscient de WordPress/ACF via les stubs `szepeviktor/phpstan-wordpress` + `php-stubs/acf-pro-stubs`. Analyse `config/`, le thème custom, `web/index.php`, `web/wp-config.php`.
+- `composer audit` — scan des vulnérabilités des dépendances intégré à Composer. `roave/security-advisories` (dev uniquement, aucun code réel) bloque en plus `composer install`/`update` dès qu'un paquet a une CVE connue.
+- Aucune suite de tests, PHPCS/WPCS, PHPMD, ni lint JS/CSS configuré.
+
+Aucune suite de tests, PHPCS/WPCS, PHPMD, ni lint JS/CSS configuré pour l'instant dans le thème.
 
 ## Documentation
 

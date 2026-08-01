@@ -101,6 +101,15 @@ All commands run via `make` from the repo root (see `Makefile`; run `make help` 
 | `make vite-build` | Build production assets (`web/app/themes/custom/tailwind/dist/`) |
 | `make npm ARGS="..."` | Run an arbitrary npm command in the theme, e.g. `make npm ARGS="run build"` |
 
+### Quality (composer scripts, config/, custom theme, `web/index.php`, `web/wp-config.php`)
+
+| Command | Effect |
+|---|---|
+| `make lint` | Check code style with Pint (preset `per`) |
+| `make lint-fix` | Fix code style with Pint |
+| `make phpstan` | PHPStan static analysis, level 5, WordPress/ACF-aware |
+| `make audit` | Check Composer dependencies for known security vulnerabilities |
+
 ### Deployment (o2switch — see [`.claude/DEPLOY.md`](.claude/DEPLOY.md))
 
 | Command | Effect |
@@ -123,7 +132,7 @@ All commands run via `make` from the repo root (see `Makefile`; run `make help` 
 - [x] ACF Flexible Content page builder (`hero`, `section` with `text_media`/`cards_grid`/`cta_banner`/`accordion`/`embed`)
 - [x] Multilingual FR/EN (Polylang), symmetric translation workflow
 - [x] Production deployment to o2switch (manual `make deploy` + GitHub Actions CI/CD)
-- [ ] CI: automated tests (Pest) and linting in GitHub Actions
+- [ ] CI: automated linting (Pint, PHPStan) in GitHub Actions
 
 ---
 
@@ -220,6 +229,15 @@ Toutes les commandes s'exécutent via `make` depuis la racine du repo (voir `Mak
 | `make vite-build` | Construit les assets de production (`web/app/themes/custom/tailwind/dist/`) |
 | `make npm ARGS="..."` | Exécute une commande npm arbitraire dans le thème, ex. `make npm ARGS="run build"` |
 
+### Qualité (scripts composer, config/, thème custom, `web/index.php`, `web/wp-config.php`)
+
+| Commande | Effet |
+|---|---|
+| `make lint` | Vérifie le style de code avec Pint (préréglage `per`) |
+| `make lint-fix` | Corrige le style de code avec Pint |
+| `make phpstan` | Analyse statique PHPStan, niveau 5, conscient de WordPress/ACF |
+| `make audit` | Vérifie les vulnérabilités de sécurité connues des dépendances Composer |
+
 ### Déploiement (o2switch — voir [`.claude/DEPLOY.md`](.claude/DEPLOY.md))
 
 | Commande | Effet |
@@ -242,4 +260,4 @@ Toutes les commandes s'exécutent via `make` depuis la racine du repo (voir `Mak
 - [x] Page builder ACF Flexible Content (`hero`, `section` avec `text_media`/`cards_grid`/`cta_banner`/`accordion`/`embed`)
 - [x] Multilingue FR/EN (Polylang), workflow de traduction symétrique
 - [x] Déploiement en production sur o2switch (`make deploy` manuel + CI/CD GitHub Actions)
-- [ ] CI : tests automatisés (Pest) et lint dans GitHub Actions
+- [ ] CI : lint automatisé (Pint, PHPStan) dans GitHub Actions

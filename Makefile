@@ -7,6 +7,7 @@ export
 .PHONY: help \
 	start stop colima-stop restart status logs shell ports urls \
 	install update wp wp-login check-updates \
+	lint lint-fix phpstan audit \
 	dockhand-register \
 	npm vite-install vite-dev vite-build \
 	deploy-dry-run deploy deploy-env deploy-permalinks
@@ -81,6 +82,22 @@ check-updates: ## Check for available WordPress core/plugin/theme updates and ou
 	@$(COMPOSE) exec php wp --allow-root theme list --update=available
 	@echo "--- Composer packages (source of truth for this Bedrock project) ---"
 	@$(COMPOSE) exec php composer outdated --direct
+
+# --------------------------------------------------------------------------
+# Quality (composer.json scripts — config/, the tailwind theme, web/index.php, web/wp-config.php)
+# --------------------------------------------------------------------------
+
+lint: ## Check code style with Pint (preset "per", pint.json)
+	$(COMPOSE) exec php composer lint
+
+lint-fix: ## Fix code style with Pint
+	$(COMPOSE) exec php composer lint:fix
+
+phpstan: ## Run PHPStan static analysis (level 5, WordPress/ACF-aware — phpstan.neon.dist)
+	$(COMPOSE) exec php composer phpstan
+
+audit: ## Check Composer dependencies for known security vulnerabilities
+	$(COMPOSE) exec php composer audit
 
 # --------------------------------------------------------------------------
 # Dockhand

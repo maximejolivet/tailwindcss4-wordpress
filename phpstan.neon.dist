@@ -1,0 +1,18 @@
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+    level: 5
+
+    scanFiles:
+        - vendor/php-stubs/acf-pro-stubs/acf-pro-stubs.php
+
+    paths:
+        - config
+        - web/app/themes/custom/tailwind
+        - web/index.php
+        - web/wp-config.php
+
+    excludePaths:
+        - web/app/themes/custom/tailwind/dist
+        - web/app/themes/custom/tailwind/node_modules
