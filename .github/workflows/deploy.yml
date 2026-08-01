@@ -181,12 +181,17 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -v "${{ secrets.DEPLOY_SSH_HOST }}" >> ~/.ssh/known_hosts
 
-      # web/app/uploads and web/app/cache are excluded, not just gitignored:
-      # --delete would otherwise wipe live media/cache on the server since
-      # neither exists in the build artifact (the "Stage deployable files"
-      # step in the build job never populates them).
+      # web/app/uploads, web/app/cache AND .env are excluded here too, not
+      # just from the build artifact: --delete removes anything on the
+      # server that isn't in the source, and none of these three exist in
+      # the artifact (uploads/cache are never populated by the build job;
+      # .env is never checked out at all, it's gitignored and only ever
+      # exists on the server). Without this exclude here, --delete wipes
+      # the live .env on every deploy — this is not hypothetical, it's
+      # exactly what happened on the first run of this split pipeline.
       - name: Rsync to o2switch
         run: |
           rsync -avz --delete \
             --exclude 'web/app/uploads' --exclude 'web/app/cache' \
+            --exclude '.env' --exclude '.env.*' \
             site/ "${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }}:${{ secrets.DEPLOY_PROJECT_PATH }}/"
