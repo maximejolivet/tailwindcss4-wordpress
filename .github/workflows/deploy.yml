@@ -2,7 +2,7 @@
 # access with an IP whitelist (cPanel > Security > SSH Access): GitHub
 # Actions runners get a different IP on every run, so this workflow
 # dynamically whitelists the runner's IP via the cPanel API before
-# attempting SSH (see https://gist.github.com/webaxones/54a9aee13bd9152e900ef30a0fcef3ed).
+# attempting SSH (see https://faq.o2switch.fr/cpanel/outils/exception-parefeu/).
 #
 # Required secrets (Settings > Secrets and variables > Actions):
 # - DEPLOY_SSH_KEY          SSH private key (dedicated to deployment, not a personal key)
@@ -21,11 +21,18 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Queues overlapping runs instead of letting them race: two concurrent runs
+# would interleave whitelist add/remove calls and rsync --delete to the same
+# server path. No cancel-in-progress — a run already mid-rsync must finish,
+# not get killed halfway through a deploy.
+concurrency:
+  group: deploy-${{ github.ref }}
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # vendor/ is built here (on the runner) rather than on the server:
       # a fresh checkout has no dev vendor/ to accidentally wipe, unlike a
@@ -35,26 +42,45 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
+
+      # Caches Composer's download cache (~/.composer/cache), not vendor/
+      # itself — vendor/ still gets rebuilt fresh every run (--no-dev), but
+      # package archives don't get re-downloaded when composer.lock is
+      # unchanged.
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
       - run: composer install --prefer-dist --no-dev --optimize-autoloader --no-interaction
 
-      - uses: actions/setup-node@v4
+      # cache: npm + cache-dependency-path avoids re-downloading the theme's
+      # node_modules every run when package-lock.json hasn't changed.
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: web/app/themes/custom/tailwind/package-lock.json
       - name: Build theme assets
         run: |
           npm --prefix web/app/themes/custom/tailwind ci
           npm --prefix web/app/themes/custom/tailwind run build
 
+      # Inline instead of a third-party action: haythem/public-ip is
+      # unmaintained (last release 2022, still on the deprecated Node 16
+      # runtime) and does nothing more than call a public IP echo service.
       - name: Get runner public IP
         id: ip
-        uses: haythem/public-ip@v1.3
+        run: echo "ipv4=$(curl -sS https://api.ipify.org)" >> "$GITHUB_OUTPUT"
 
       # o2switch caps the number of whitelisted IPs, and since every run adds
       # a new one and nothing removes old ones on its own, the quota fills up
       # after a few runs and blocks SSH entirely. Uses the JSON list endpoint
       # (?r=list, .data.list[].address) instead of scraping HTML, and removes
-      # both `in` and `out` directions per IP (o2switch tracks them
-      # separately) before re-adding the current runner IP.
+      # both `in` and `out` directions for the last 2 entries (o2switch
+      # tracks directions separately) before re-adding the current runner IP.
       - name: Whitelist IP on hosting & delete github old ones (o2switch)
         shell: bash
         run: |
@@ -93,7 +119,7 @@ jobs:
       # from subtly mangling the multi-line PEM content. webfactory/ssh-agent
       # loads the secret directly via `ssh-add -`, which doesn't have that
       # problem.
-      - uses: webfactory/ssh-agent@v0.9.0
+      - uses: webfactory/ssh-agent@v0.10.0
         with:
           ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
 
