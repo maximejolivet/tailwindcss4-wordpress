@@ -26,7 +26,8 @@
 # - description: always in English, even if drafted in another language
 #   first — translate it before committing
 # - description: imperative, lowercase, no trailing period, ≤ 72 chars
-# - scope: lowercase module name (e.g. auth, billing, api)
+# - scope: REQUIRED (not optional) — lowercase module name (e.g. auth,
+#   billing, api, deploy, theme, docker)
 # - body: optional, wrap at 72 chars
 # - Verified-by: fill in all 3 counters even if 0
 # - Refs: optional, links the ticket without closing it

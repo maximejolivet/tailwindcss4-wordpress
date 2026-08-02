@@ -3,31 +3,32 @@ name: semantic-commit-messages
 description: "Write git commit messages in the semantic/conventional format (`<type>(<scope>): <emoji> <description>`) instead of a free-form sentence. Use whenever the user asks for a commit, or asks to write/review a commit message, and wants it typed (feat/fix/refactor/perf/style/test/docs/build/ci/chore/revert/security) rather than descriptive prose."
 ---
 
-Prefix every commit subject with a **type**, and optionally a **scope**, before the actual description — a small style change that makes `git log` scannable (what kind of change, at a glance) and lets tooling (changelogs, semantic-release) parse history mechanically instead of guessing from prose. This repo follows [Conventional Commits](https://www.conventionalcommits.org/) via commitlint's `@commitlint/config-conventional` defaults, plus one repo-specific addition: a `security` type for vulnerability fixes (see Types below) — not the loose "use whatever type feels right" version.
+Prefix every commit subject with a **type** and a **scope** (mandatory in this repo, not optional), before the actual description — a small style change that makes `git log` scannable (what kind of change, at a glance) and lets tooling (changelogs, semantic-release) parse history mechanically instead of guessing from prose. This repo follows [Conventional Commits](https://www.conventionalcommits.org/) via commitlint's `@commitlint/config-conventional` defaults, plus one repo-specific addition: a `security` type for vulnerability fixes (see Types below) — not the loose "use whatever type feels right" version.
 
 ## Format
 
 ```
-<type>(<optional scope>): <emoji> <description>
+<type>(<scope>): <emoji> <description>
 
 <optional body>
 
 <optional footer trailers>
 ```
 
-- `<scope>` — optional, the area of the codebase touched (`deploy`, `theme`, `docker`...). Never an issue identifier.
+- `<scope>` — mandatory, the area of the codebase touched (`deploy`, `theme`, `docker`...). Never an issue identifier. Enforced by commitlint's `scope-empty` rule (`commitlint.config.js`) — a commit without one is rejected.
 - `<emoji>` — optional but recommended, right after the colon, chosen per `<type>` (table below). It's part of `<description>` as far as commitlint is concerned (only `type(scope):` is parsed), so it never breaks validation.
 - `<description>` — mandatory, imperative present tense ("add", not "added"/"adds" — think "This commit will ..."), always in English (translate it if drafted in another language first), no capitalized first letter, no trailing period, ≤ 72 chars.
 - `<body>` — optional, explains the *what* and *why*, not the *how*, contrasted with previous behavior. Same imperative present tense, wrap at ~72 chars. Blank line separates it from the subject.
 - `<footer>` — optional except when the commit is breaking (then mandatory). See Footer trailers below.
 
 ```
-feat: ✨ add hat wobble
-^--^  ^--^--------------^
-|     |  |
-|     |  +-> Description: imperative, present tense, no cap, no period.
-|     +----> Emoji: matches the type, see table below.
-+----------> Type: see table below.
+feat(ui): ✨ add hat wobble
+^--^ ^--^ ^--^--------------^
+|    |    |  |
+|    |    |  +-> Description: imperative, present tense, no cap, no period.
+|    |    +----> Emoji: matches the type, see table below.
+|    +---------> Scope: mandatory, area touched.
++--------------> Type: see table below.
 ```
 
 ## Types
@@ -82,16 +83,16 @@ Not currently applicable here: this repo deploys straight to production on push 
 
 ## Special commit formats
 
-- **Initial commit**: `chore: 🔧 init`
+- **Initial commit**: `chore(repo): 🔧 init`
 - **Merge commit**: leave git's default `Merge branch '<name>'` message as-is, don't rewrite it to a type-prefixed form.
-- **Revert commit**: `git revert` generates `Revert "<reverted subject>"` by default — leave it as-is unless the revert needs its own explanation, in which case `revert: ⏪ <description>` (the explicit type, table above) is also accepted by the hook.
+- **Revert commit**: `git revert` generates `Revert "<reverted subject>"` by default — leave it as-is unless the revert needs its own explanation, in which case `revert(<scope>): ⏪ <description>` (the explicit type, table above) is also accepted by the hook.
 
 ## Tooling — enforced in this repo
 
 `commitlint` + a Husky `commit-msg` hook are installed at the repo root and **reject a non-compliant commit message locally**, before it lands:
 
 - `package.json` (root) — devDependencies `@commitlint/cli`, `@commitlint/config-conventional`, `husky`; `"prepare": "husky"` script wires the hook back up on every `npm install`.
-- `commitlint.config.js` (root) — extends `@commitlint/config-conventional` (whose default `type-enum` already covers `feat fix refactor perf style test docs build ci chore revert`) and **adds one type**: `security`, for the reason in the Types table above.
+- `commitlint.config.js` (root) — extends `@commitlint/config-conventional` (whose default `type-enum` already covers `feat fix refactor perf style test docs build ci chore revert`), **adds one type**: `security` (see Types table above), and **overrides `scope-empty`** to `[2, 'never']` — config-conventional leaves scope optional by default, this repo requires it on every commit.
 - `.husky/commit-msg` — runs `npx --no -- commitlint --edit "$1"` on every commit.
 
 This is root-level Node tooling, unrelated to the Vite theme's own `package.json`/`node_modules` (`web/app/themes/custom/tailwind/`, managed via `make npm`/`make vite-*`) — a fresh clone needs one `npm install` at the repo root (not `make npm ARGS="install"`, which targets the theme) to activate the hook locally. Verify it's active: `git config core.hooksPath` should print `.husky/_`.
@@ -109,14 +110,14 @@ Check `git log --oneline -10` before assuming this format is already the convent
 1. Look at what's actually staged/changed (`git diff --staged`, `git status`) — the type must match the *effect* of the diff, not the intent behind the request. A refactor that happens to fix a latent bug is `fix`, not `refactor`.
 2. Pick exactly one type, one concern. If a commit seems to need two types (e.g. a fix *and* a docs update), that's usually a sign it should be two commits — but don't split an already-requested single commit without checking with the user first.
 3. Keep `<description>` short (~50-72 chars), imperative present tense, English, no cap, no trailing period; put any further explanation in the commit body.
-4. Use the scope when it genuinely narrows things down (`fix(deploy): 🐛 ...`, `feat(theme): ✨ ...`) — skip it rather than force a vague one on a change that touches several areas at once. Never an issue identifier.
+4. Scope is mandatory — pick the area that best fits (`fix(deploy): 🐛 ...`, `feat(theme): ✨ ...`). For a change that genuinely spans several areas, use the broadest sensible one (`repo`, `config`) rather than omitting it. Never an issue identifier.
 5. Actually run `make lint`/`make phpstan`/`make audit` before writing `Verified-by:` — never fabricate the counts.
 6. Still follow this repo's own commit rules (see root `CLAUDE.md` / the system's git instructions) for everything else — only create a commit when asked, never `--no-verify`, prefer new commits over amending, etc. This skill only changes the *subject line format*, not when or how a commit gets made.
 
 ## Examples
 
 ```
-feat: ✨ add email notifications on new direct messages
+feat(notifications): ✨ add email notifications on new direct messages
 ```
 ```
 feat(shopping-cart): ✨ add the amazing button
@@ -125,23 +126,23 @@ feat(shopping-cart): ✨ add the amazing button
 fix(shopping-cart): 🐛 prevent ordering an empty shopping cart
 ```
 ```
-fix: 🐛 add missing parameter to service call
+fix(pricing): 🐛 add missing parameter to service call
 
 The error occurred due to a stale cache read on the pricing service.
 
 Verified-by: Pint 0 errors, PHPStan 0 errors, audit 0 advisories
 ```
 ```
-perf: ⚡️ decrease memory footprint for unique-visitor counting using HyperLogLog
+perf(analytics): ⚡️ decrease memory footprint for unique-visitor counting using HyperLogLog
 ```
 ```
-refactor: ♻️ implement fibonacci number calculation as recursion
+refactor(math): ♻️ implement fibonacci number calculation as recursion
 ```
 ```
-style: 💄 remove empty line
+style(theme): 💄 remove empty line
 ```
 ```
-build: 📦 update dependencies
+build(deps): 📦 update dependencies
 ```
 ```
 ci(deploy): 👷 whitelist the runner IP before rsync

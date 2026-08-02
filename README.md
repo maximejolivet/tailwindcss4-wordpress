@@ -127,7 +127,7 @@ Toutes les commandes s'exécutent via `make` depuis la racine du repo (voir `Mak
 
 ## Convention de commit
 
-Format [Conventional Commits](https://www.conventionalcommits.org/) (`<type>(<scope>): <emoji> <description>`) via les préréglages `@commitlint/config-conventional`, plus un type maison (`security`) — imposé localement par un hook `commitlint`/Husky (`commit-msg`, type-enum étendu dans `commitlint.config.js`) — voir [`.claude/skills/semantic-commit-messages/`](.claude/skills/semantic-commit-messages/SKILL.md) pour le détail (types, émojis, breaking changes, versioning).
+Format [Conventional Commits](https://www.conventionalcommits.org/) (`<type>(<scope>): <emoji> <description>`, `<scope>` **obligatoire**, pas optionnel) via les préréglages `@commitlint/config-conventional`, plus un type maison (`security`) — imposé localement par un hook `commitlint`/Husky (`commit-msg`, type-enum étendu + `scope-empty` dans `commitlint.config.js`) — voir [`.claude/skills/semantic-commit-messages/`](.claude/skills/semantic-commit-messages/SKILL.md) pour le détail (types, émojis, breaking changes, versioning).
 
 Types : `feat`, `fix`, `refactor`, `perf`, `style`, `test`, `docs`, `build`, `ci`, `chore`, `revert`, `security`.
 
@@ -286,7 +286,7 @@ All commands run via `make` from the repo root (see `Makefile`; run `make help` 
 
 ## Commit convention
 
-[Conventional Commits](https://www.conventionalcommits.org/) format (`<type>(<scope>): <emoji> <description>`) via `@commitlint/config-conventional`'s presets, plus one repo-specific type (`security`) — enforced locally by a `commitlint`/Husky `commit-msg` hook (extended type-enum in `commitlint.config.js`) — see [`.claude/skills/semantic-commit-messages/`](.claude/skills/semantic-commit-messages/SKILL.md) for the full detail (types, emojis, breaking changes, versioning).
+[Conventional Commits](https://www.conventionalcommits.org/) format (`<type>(<scope>): <emoji> <description>`, `<scope>` **mandatory**, not optional) via `@commitlint/config-conventional`'s presets, plus one repo-specific type (`security`) — enforced locally by a `commitlint`/Husky `commit-msg` hook (extended type-enum + `scope-empty` in `commitlint.config.js`) — see [`.claude/skills/semantic-commit-messages/`](.claude/skills/semantic-commit-messages/SKILL.md) for the full detail (types, emojis, breaking changes, versioning).
 
 Types: `feat`, `fix`, `refactor`, `perf`, `style`, `test`, `docs`, `build`, `ci`, `chore`, `revert`, `security`.
 
