@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Vite asset loading
  *

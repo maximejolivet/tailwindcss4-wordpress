@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The template for displaying the static front page
  */
