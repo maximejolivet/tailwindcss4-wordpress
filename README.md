@@ -18,6 +18,7 @@ Un projet WordPress Bedrock, Vite &amp; TailwindCSS 4
 - [Configuration du mode développement](#configuration-du-mode-développement)
 - [Thème custom (`web/app/themes/custom/tailwind`)](#thème-custom-webappthemescustomtailwind)
 - [Commandes](#commandes)
+- [Convention de commit](#convention-de-commit)
 
 ## Installation
 
@@ -124,6 +125,35 @@ Toutes les commandes s'exécutent via `make` depuis la racine du repo (voir `Mak
 |---|---|
 | `make dockhand-register` | Enregistre ce stack dans [Dockhand](https://dockhand.pro/) (interface d'admin Docker locale) |
 
+## Convention de commit
+
+Format [Conventional Commits](https://www.conventionalcommits.org/) (`<type>(<scope>): <subject>`), imposé localement par un hook `commitlint`/Husky (`commit-msg`) — voir [`.claude/skills/semantic-commit-messages/`](.claude/skills/semantic-commit-messages/SKILL.md).
+
+Un template (`.gitmessage`) pré-remplit `git commit` (sans `-m`) avec une checklist à cocher à la main avant de valider :
+
+```
+<type>(<scope>): <subject>
+
+## Type de changement
+- [ ] ✨ Nouvelle fonctionnalité (feat)
+- [ ] 🐛 Correction de bug (fix)
+- [ ] ♻️ Refactoring / dette (refactor/chore)
+- [ ] 📚 Documentation (docs)
+- [ ] 🎨 Style / formatage (style)
+- [ ] ✅ Tests (test)
+
+## Vérification (Docker)
+- [ ] `make lint` — 0 erreur Pint
+- [ ] `make phpstan` — 0 erreur (niveau 5)
+- [ ] `make audit` — aucune advisory
+```
+
+À activer une fois en local (pas fait automatiquement) :
+
+```bash
+git config commit.template .gitmessage
+```
+
 ---
 
 # 🇬🇧 English
@@ -136,6 +166,7 @@ A Bedrock, Vite &amp; TailwindCSS 4 WordPress project
 - [Configuration Development mode](#configuration-development-mode)
 - [Custom theme (`web/app/themes/custom/tailwind`)](#custom-theme-webappthemescustomtailwind)
 - [Commands](#commands)
+- [Commit convention](#commit-convention)
 
 ## Installation
 
@@ -241,3 +272,32 @@ All commands run via `make` from the repo root (see `Makefile`; run `make help` 
 | Command | Effect |
 |---|---|
 | `make dockhand-register` | Register this stack in [Dockhand](https://dockhand.pro/) (local Docker admin UI) |
+
+## Commit convention
+
+[Conventional Commits](https://www.conventionalcommits.org/) format (`<type>(<scope>): <subject>`), enforced locally by a `commitlint`/Husky `commit-msg` hook — see [`.claude/skills/semantic-commit-messages/`](.claude/skills/semantic-commit-messages/SKILL.md).
+
+A template (`.gitmessage`) pre-fills `git commit` (without `-m`) with a checklist to tick by hand before committing:
+
+```
+<type>(<scope>): <subject>
+
+## Type de changement
+- [ ] ✨ Nouvelle fonctionnalité (feat)
+- [ ] 🐛 Correction de bug (fix)
+- [ ] ♻️ Refactoring / dette (refactor/chore)
+- [ ] 📚 Documentation (docs)
+- [ ] 🎨 Style / formatage (style)
+- [ ] ✅ Tests (test)
+
+## Vérification (Docker)
+- [ ] `make lint` — 0 erreur Pint
+- [ ] `make phpstan` — 0 erreur (niveau 5)
+- [ ] `make audit` — aucune advisory
+```
+
+Opt in once locally (not wired up automatically):
+
+```bash
+git config commit.template .gitmessage
+```
