@@ -1,0 +1,20 @@
+<type>(<scope>): <subject>
+
+## Type de changement
+- [ ] ✨ Nouvelle fonctionnalité (feat)
+- [ ] 🐛 Correction de bug (fix)
+- [ ] ♻️ Refactoring / dette (refactor/chore)
+- [ ] 📚 Documentation (docs)
+- [ ] 🎨 Style / formatage (style)
+- [ ] ✅ Tests (test)
+
+## Vérification (Docker)
+- [ ] `make lint` — 0 erreur Pint
+- [ ] `make phpstan` — 0 erreur (niveau 5)
+- [ ] `make audit` — aucune advisory
+
+# Rappels (voir .claude/skills/semantic-commit-messages/) :
+# - <type> : feat, fix, docs, style, refactor, test, chore
+# - <scope> optionnel : partie du repo touchée (deploy, theme, docker...)
+# - <subject> au présent, court, sans point final
+# - Les lignes commençant par # ne seront pas incluses dans le message
