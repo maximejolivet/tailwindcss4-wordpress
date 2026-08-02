@@ -1,0 +1,64 @@
+# Runs this repo's existing quality tooling (composer lint/phpstan/audit —
+# see CLAUDE.md "Linting") on every push/PR instead of only on a developer's
+# machine. No test suite, PHPCS/WPCS, PHPMD, or JS/CSS lint exist in this
+# project yet (see CLAUDE.md), so this workflow only wires up what's
+# actually configured — it isn't a stand-in for a full Symfony-style
+# Pest/Deptrac pipeline.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Unlike deploy.yml, cancelling a stale run here is safe (nothing touches
+# the live server) and avoids burning CI minutes on superseded pushes.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: PHP quality (Pint, PHPStan, audit)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      # Caches Composer's download cache (~/.composer/cache), not vendor/:
+      # vendor/ still installs fresh every run, but package archives don't
+      # get re-downloaded when composer.lock is unchanged (same pattern as
+      # deploy.yml's build job).
+      - name: Cache Composer packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Validate composer.json/composer.lock
+        run: composer validate --strict --no-check-publish
+
+      # Dev dependencies (Pint, PHPStan, stubs) are required here, unlike
+      # deploy.yml's build job which runs --no-dev — this job never ships
+      # anything, it only lints/analyses.
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Pint — code style
+        run: composer lint
+
+      - name: PHPStan — static analysis (level 5)
+        run: composer phpstan
+
+      - name: Composer audit — CVE scan
+        run: composer audit
