@@ -14,5 +14,5 @@ parameters:
         - web/wp-config.php
 
     excludePaths:
-        - web/app/themes/custom/tailwind/dist
-        - web/app/themes/custom/tailwind/node_modules
+        - web/app/themes/custom/tailwind/dist (?)
+        - web/app/themes/custom/tailwind/node_modules (?)
