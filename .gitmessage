@@ -1,50 +1,35 @@
-<type>(<scope>): <emoji> <description>
-
-<optional body>
-
-Verified-by: Pint <N> errors, PHPStan <N> errors, audit <N> advisories
-Refs: #<issue>
-Author: <name> <email>
-
-# Format enforced by the commitlint/Husky hook (see commitlint.config.js
-# and .claude/skills/semantic-commit-messages/) — a message that doesn't
-# follow these rules is REJECTED at commit time, not just discouraged:
-# - <type>: feat, fix, refactor, perf, style, test, docs, build, ops, chore
-#   (no other word, no capitalization, no space inside <type>)
-# - <scope> optional: the area of the repo touched (deploy, theme,
-#   docker...), never an issue number
-# - <emoji>: optional but recommended, at the start of <description>,
-#   chosen per <type> — the emoji is part of <description>: commitlint
-#   only parses "type(scope):", so this doesn't break validation:
-#   [ ] ✨ API/UI feature (feat)
-#   [ ] 🐛 API/UI bug fix (fix)
-#   [ ] ♻️ Refactoring, no behavior change (refactor)
-#   [ ] ⚡ Performance (perf)
-#   [ ] 🎨 Style / formatting (style)
-#   [ ] ✅ Tests (test)
-#   [ ] 📚 Documentation (docs)
-#   [ ] 🛠️ Build / dependencies (build)
-#   [ ] 🚀 Infra / deployment / CI-CD (ops)
-#   [ ] 🧹 Other / housekeeping (chore)
-# - <description>: imperative present tense, lowercase, NO trailing period
-# - Breaking change: "!" after the type/scope, or a "BREAKING CHANGE: ..."
-#   footer
+# <type>(<scope>): <emoji> <description>
 #
-# Multi-line body (optional, separated from the subject by a blank line):
-# one "- ..." bullet per distinct concern if the commit touches several
-# points; otherwise a short paragraph is enough.
+# <optional body — explain the what and why, not the how>
 #
-# Footer trailers below the body, one per line, delete what doesn't apply:
-# - Verified-by: run the three, then fill in the real counts (not just a
-#   checkmark), e.g. "Verified-by: Pint 0 errors, PHPStan 0 errors, audit
-#   0 advisories":
-#   make lint     — Pint, "N style issues" (0 if PASS)
-#   make phpstan  — PHPStan level 5, "Found N errors" (0 if [OK])
-#   make audit    — composer audit, count of listed advisories (0 if none)
-# - Refs: GitHub issue number if relevant ("Refs #123", "Closes #123")
-# - Author: credit whoever/whatever actually wrote the change if
-#   different from the committer (e.g. a pair, or an AI agent) — standard
-#   git trailer is "Co-authored-by:" (GitHub renders it on the commit);
-#   delete this line if there's nothing to credit beyond the committer
+# Verified-by: Pint <N> errors, PHPStan <N> errors, audit <N> advisories
+# Refs: #<issue>
+# Closes: #<issue>
+# Co-authored-by: <name> <email>
+# Signed-off-by: <name> <email>
 #
-# Lines starting with # are stripped and won't be part of the message.
+# ── Types ──────────────────────────────────────────────
+# feat      ✨  new feature
+# fix       🐛  bug fix
+# refactor  ♻️  refactor, no behavior change
+# perf      ⚡️  performance improvement
+# docs      📝  documentation
+# style     💄  formatting, no logic change
+# test      ✅  add/fix tests
+# build     📦  dependencies, build config
+# ci        👷  CI/CD pipelines
+# chore     🔧  misc maintenance/config
+# revert    ⏪  revert a commit
+# security  🔒  security fix
+#
+# ── Rules ──────────────────────────────────────────────
+# - description: always in English, even if drafted in another language
+#   first — translate it before committing
+# - description: imperative, lowercase, no trailing period, ≤ 72 chars
+# - scope: lowercase module name (e.g. auth, billing, api)
+# - body: optional, wrap at 72 chars
+# - Verified-by: fill in all 3 counters even if 0
+# - Refs: optional, links the ticket without closing it
+# - Closes: optional, use instead of/alongside Refs to auto-close the
+#   ticket on merge (GitHub/GitLab)
+# - Co-authored-by / Signed-off-by: optional, delete if unused

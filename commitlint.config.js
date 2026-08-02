@@ -1,15 +1,29 @@
-// Overrides config-conventional's default type-enum (which includes `ci`
-// and `revert`) with the qoomon/git-conventional-commits nomenclature:
-// https://github.com/qoomon/git-conventional-commits — `ops` replaces `ci`
-// (infra/deploy/CI-CD, broader than just pipelines), `revert` commits use
-// git's own "Revert "..."" format instead of a type prefix.
+// Extends config-conventional's default type-enum (which already has
+// `feat fix refactor perf style test docs build ci chore revert`) with one
+// addition: `security`, for a fix that specifically closes a
+// vulnerability — kept distinct from a plain `fix` so it's easy to spot in
+// `git log` and in changelogs. See .gitmessage for the full type list with
+// emojis and descriptions, and .claude/skills/semantic-commit-messages/.
 module.exports = {
     extends: ['@commitlint/config-conventional'],
     rules: {
         'type-enum': [
             2,
             'always',
-            ['feat', 'fix', 'refactor', 'perf', 'style', 'test', 'docs', 'build', 'ops', 'chore'],
+            [
+                'feat',
+                'fix',
+                'refactor',
+                'perf',
+                'style',
+                'test',
+                'docs',
+                'build',
+                'ci',
+                'chore',
+                'revert',
+                'security',
+            ],
         ],
     },
 };

@@ -127,20 +127,36 @@ Toutes les commandes s'exécutent via `make` depuis la racine du repo (voir `Mak
 
 ## Convention de commit
 
-Nomenclature [qoomon/git-conventional-commits](https://github.com/qoomon/git-conventional-commits) (`<type>(<scope>): <description>`), superset opinionated des [Conventional Commits](https://www.conventionalcommits.org/) — imposée localement par un hook `commitlint`/Husky (`commit-msg`, type-enum personnalisé dans `commitlint.config.js`) — voir [`.claude/skills/semantic-commit-messages/`](.claude/skills/semantic-commit-messages/SKILL.md) pour le détail (types, breaking changes, versioning).
+Format [Conventional Commits](https://www.conventionalcommits.org/) (`<type>(<scope>): <emoji> <description>`) via les préréglages `@commitlint/config-conventional`, plus un type maison (`security`) — imposé localement par un hook `commitlint`/Husky (`commit-msg`, type-enum étendu dans `commitlint.config.js`) — voir [`.claude/skills/semantic-commit-messages/`](.claude/skills/semantic-commit-messages/SKILL.md) pour le détail (types, émojis, breaking changes, versioning).
 
-Types : `feat`, `fix`, `refactor`, `perf`, `style`, `test`, `docs`, `build`, `ops`, `chore`.
+Types : `feat`, `fix`, `refactor`, `perf`, `style`, `test`, `docs`, `build`, `ci`, `chore`, `revert`, `security`.
 
-Un template (`.gitmessage`) pré-remplit `git commit` (sans `-m`) : le sujet, un corps optionnel, et trois trailers en footer (`Verified-by:` avec les résultats chiffrés réels de `make lint`/`phpstan`/`audit`, `Refs:`, `Author:`) — la checklist type/vérification reste disponible en commentaire (`#`, jamais incluse dans le message final) :
+Un template (`.gitmessage`) pré-remplit `git commit` (sans `-m`) — tout est en commentaire `#` (types/émojis, règles), donc rien n'est inclus automatiquement dans le message : le contributeur écrit le message en s'appuyant dessus, plutôt qu'en éditant du texte déjà présent :
 
 ```
-<type>(<scope>): <emoji> <description>
-
-<optional body>
-
-Verified-by: Pint <N> errors, PHPStan <N> errors, audit <N> advisories
-Refs: #<issue>
-Author: <name> <email>
+# <type>(<scope>): <emoji> <description>
+#
+# <optional body — explique le quoi et le pourquoi, pas le comment>
+#
+# Verified-by: Pint <N> errors, PHPStan <N> errors, audit <N> advisories
+# Refs: #<issue>
+# Closes: #<issue>
+# Co-authored-by: <name> <email>
+# Signed-off-by: <name> <email>
+#
+# ── Types ──────────────────────────────────────────────
+# feat      ✨  nouvelle fonctionnalité
+# fix       🐛  correction de bug
+# refactor  ♻️  refactor sans changement de comportement
+# perf      ⚡️  amélioration de performance
+# docs      📝  documentation
+# style     💄  formatage, pas de logique
+# test      ✅  ajout/correction de tests
+# build     📦  dépendances, config de build
+# ci        👷  pipelines CI/CD
+# chore     🔧  maintenance, config divers
+# revert    ⏪  annulation d'un commit
+# security  🔒  correctif de sécurité
 ```
 
 À activer une fois en local (pas fait automatiquement) :
@@ -270,20 +286,36 @@ All commands run via `make` from the repo root (see `Makefile`; run `make help` 
 
 ## Commit convention
 
-[qoomon/git-conventional-commits](https://github.com/qoomon/git-conventional-commits) nomenclature (`<type>(<scope>): <description>`), an opinionated superset of [Conventional Commits](https://www.conventionalcommits.org/) — enforced locally by a `commitlint`/Husky `commit-msg` hook (custom type-enum in `commitlint.config.js`) — see [`.claude/skills/semantic-commit-messages/`](.claude/skills/semantic-commit-messages/SKILL.md) for the full detail (types, breaking changes, versioning).
+[Conventional Commits](https://www.conventionalcommits.org/) format (`<type>(<scope>): <emoji> <description>`) via `@commitlint/config-conventional`'s presets, plus one repo-specific type (`security`) — enforced locally by a `commitlint`/Husky `commit-msg` hook (extended type-enum in `commitlint.config.js`) — see [`.claude/skills/semantic-commit-messages/`](.claude/skills/semantic-commit-messages/SKILL.md) for the full detail (types, emojis, breaking changes, versioning).
 
-Types: `feat`, `fix`, `refactor`, `perf`, `style`, `test`, `docs`, `build`, `ops`, `chore`.
+Types: `feat`, `fix`, `refactor`, `perf`, `style`, `test`, `docs`, `build`, `ci`, `chore`, `revert`, `security`.
 
-A template (`.gitmessage`) pre-fills `git commit` (without `-m`): the subject, an optional body, and three footer trailers (`Verified-by:` with the real counts from `make lint`/`phpstan`/`audit`, `Refs:`, `Author:`) — the change-type/verification checklist stays available as a comment (`#`, never part of the final message):
+A template (`.gitmessage`) pre-fills `git commit` (without `-m`) — everything is a `#` comment (types/emojis, rules), so nothing is auto-included in the message: the contributor writes it guided by the template rather than editing live placeholder text:
 
 ```
-<type>(<scope>): <emoji> <description>
-
-<optional body>
-
-Verified-by: Pint <N> errors, PHPStan <N> errors, audit <N> advisories
-Refs: #<issue>
-Author: <name> <email>
+# <type>(<scope>): <emoji> <description>
+#
+# <optional body — explain the what and why, not the how>
+#
+# Verified-by: Pint <N> errors, PHPStan <N> errors, audit <N> advisories
+# Refs: #<issue>
+# Closes: #<issue>
+# Co-authored-by: <name> <email>
+# Signed-off-by: <name> <email>
+#
+# ── Types ──────────────────────────────────────────────
+# feat      ✨  new feature
+# fix       🐛  bug fix
+# refactor  ♻️  refactor, no behavior change
+# perf      ⚡️  performance improvement
+# docs      📝  documentation
+# style     💄  formatting, no logic change
+# test      ✅  add/fix tests
+# build     📦  dependencies, build config
+# ci        👷  CI/CD pipelines
+# chore     🔧  misc maintenance/config
+# revert    ⏪  revert a commit
+# security  🔒  security fix
 ```
 
 Opt in once locally (not wired up automatically):
