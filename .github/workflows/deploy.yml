@@ -168,6 +168,12 @@ jobs:
     permissions:
       contents: read
     steps:
+      # This job only ever downloaded the build artifact before, never the
+      # source repo — needed now for .github/scripts/o2switch-whitelist.sh
+      # to actually exist on the runner (it lives in source control, not
+      # in the deployable artifact, which excludes .github/ entirely).
+      - uses: actions/checkout@v7
+
       - uses: actions/download-artifact@v8
         with:
           name: site
