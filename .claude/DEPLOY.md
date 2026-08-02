@@ -8,7 +8,7 @@ chemins de déploiement disponibles :
 Les deux font la même chose au fond : synchroniser le code vers le serveur
 puis reconstruire les dépendances/assets. Ils diffèrent sur **où** tourne
 `composer install` (cf. §3) à cause d'une contrainte locale : ne pas casser
-le `vendor/` de dev (Pint, Pest) sur la machine du développeur.
+le `vendor/` de dev (Pint, PHPStan) sur la machine du développeur.
 
 ## Sommaire
 
@@ -73,14 +73,36 @@ runner** (`composer install --no-dev`, PHP 8.4) et l'envoie tel quel par
 rsync — il ne fait donc pas tourner composer sur le serveur. Cette
 asymétrie avec `make deploy` est volontaire : sur la machine du
 développeur, faire tourner `composer install --no-dev` en local viderait
-les dépendances de dev (Pint, Pest) nécessaires au quotidien ; sur un
+les dépendances de dev (Pint, PHPStan) nécessaires au quotidien ; sur un
 runner CI (checkout neuf à chaque fois), ce risque n'existe pas.
+
+Deux jobs :
+- **`Build & Quality`** : `composer install` (avec dev deps) →
+  `composer validate`/`lint` (Pint)/`phpstan` (niveau 5)/`audit` — bloque
+  la suite si l'un échoue — puis `composer install --no-dev` (élague pour
+  la prod), build du thème (Vite), staging de l'arborescence déployable,
+  upload en artefact. Le setup PHP + cache Composer est factorisé dans
+  une action composite locale (`.github/actions/setup-php-composer/`).
+- **`Deploy`** : checkout (pour `.github/scripts/o2switch-whitelist.sh`,
+  absent de l'artefact), téléchargement de l'artefact, whitelist IP,
+  attente que le port SSH réponde, rsync, puis un smoke test qui vérifie
+  que le CSS/JS du thème sont bien enqueued sur le site en prod.
+  Déclare un environnement GitHub `production` (historique de
+  déploiement visible dans l'onglet *Environments*).
 
 Le runner GitHub Actions a une IP différente à chaque exécution : le
 workflow l'ajoute dynamiquement à la liste blanche SSH d'o2switch via
-l'API cPanel (port 2083) avant de tenter la connexion SSH — pattern repris
-de [ce gist](https://gist.github.com/webaxones/54a9aee13bd9152e900ef30a0fcef3ed),
-spécifique aux hébergements o2switch/cPanel avec restriction SSH par IP.
+l'API cPanel (port 2083) avant de tenter la connexion SSH — logique dans
+`.github/scripts/o2switch-whitelist.sh` (pattern d'origine repris de
+[ce gist](https://gist.github.com/webaxones/54a9aee13bd9152e900ef30a0fcef3ed),
+spécifique aux hébergements o2switch/cPanel avec restriction SSH par IP).
+Le script échoue explicitement si l'appel d'ajout à la whitelist ne
+renvoie pas un succès (au lieu de continuer silencieusement puis
+d'échouer plus tard sur un SSH "Permission denied" incompréhensible).
+
+`workflow_dispatch` accepte un input `dry_run` (booléen) — équivalent CI
+de `make deploy-dry-run` : build/whitelist/SSH tournent normalement, mais
+`rsync` reçoit `--dry-run` et le smoke test est sauté.
 
 ### Secrets GitHub requis
 
@@ -139,6 +161,20 @@ Pipeline vérifié de bout en bout le 2026-07-31.
    **autorisée** (case à part, facile à manquer) : importer une clé SSH ne
    suffit pas à cPanel, il faut explicitement l'autoriser avant qu'elle
    fonctionne pour l'authentification.
+4. **CSS/JS absents en prod après un déploiement, sans erreur nulle part**
+   (2026-08-02) — `actions/upload-artifact` exclut les fichiers/dossiers
+   cachés par défaut depuis la v4.4 (anti-fuite de secrets) ; le manifest
+   Vite (`dist/.vite/manifest.json`) vit dans un dossier caché, donc
+   l'artefact le perdait silencieusement, `inc/vite.php` ne trouvait pas
+   de manifest et n'enqueue rien (pas d'erreur PHP). Corrigé avec
+   `include-hidden-files: true` sur `actions/upload-artifact`.
+5. **Ce même bug de whitelist a refait surface** au premier run du
+   pipeline fusionné (2026-08-03) — le job `Deploy` ne faisait qu'un
+   `download-artifact`, jamais de `checkout` : `.github/scripts/
+   o2switch-whitelist.sh` (extrait du YAML ce jour-là) n'existe que dans
+   le repo source, pas dans l'artefact déployable (`.github` en est
+   exclu). Corrigé en ajoutant `actions/checkout@v7` en premier step du
+   job `Deploy`.
 
 ## Fichiers concernés
 
@@ -146,6 +182,10 @@ Pipeline vérifié de bout en bout le 2026-07-31.
   config de déploiement
 - `Makefile` — cibles `deploy`, `deploy-dry-run`, `deploy-env`,
   `deploy-permalinks`
+- `.github/scripts/o2switch-whitelist.sh` — logique de whitelisting IP
+  (utilisée par le job `Deploy`)
+- `.github/actions/setup-php-composer/` — action composite (setup PHP +
+  cache Composer + `composer install`), utilisée par `Build & Quality`
 - `bin/generate-production-env.php` — génère un `.env` de prod (salts
   aléatoires) à partir de `.env.deploy`
 - `.github/workflows/deploy.yml` — CI/CD
@@ -162,7 +202,7 @@ deployment paths available:
 Both do fundamentally the same thing: sync the code to the server, then
 rebuild dependencies/assets. They differ on **where** `composer install`
 runs (see §3) because of a local constraint: not breaking the dev `vendor/`
-(Pint, Pest) on the developer's machine.
+(Pint, PHPStan) on the developer's machine.
 
 ## Table of contents
 
@@ -226,15 +266,38 @@ Unlike `make deploy`, the CI workflow **builds `vendor/` on the runner**
 (`composer install --no-dev`, PHP 8.4) and ships it as-is via rsync — it
 doesn't run composer on the server at all. This asymmetry with `make
 deploy` is intentional: on the developer's machine, running `composer
-install --no-dev` locally would wipe the dev dependencies (Pint, Pest)
+install --no-dev` locally would wipe the dev dependencies (Pint, PHPStan)
 needed day to day; on a CI runner (fresh checkout every time), that risk
 doesn't exist.
 
+Two jobs:
+- **`Build & Quality`**: `composer install` (with dev deps) →
+  `composer validate`/`lint` (Pint)/`phpstan` (level 5)/`audit` — stops
+  the run if any of them fail — then `composer install --no-dev` (prunes
+  for production), builds the theme (Vite), stages the deployable tree,
+  uploads it as an artifact. PHP setup + Composer cache is factored into
+  a local composite action (`.github/actions/setup-php-composer/`).
+- **`Deploy`**: checkout (needed for
+  `.github/scripts/o2switch-whitelist.sh`, which the artifact doesn't
+  include), downloads the artifact, whitelists the IP, waits for the SSH
+  port to respond, rsyncs, then runs a smoke test that checks the
+  theme's CSS/JS are actually enqueued on the live site. Declares a
+  `production` GitHub environment (deployment history visible under the
+  *Environments* tab).
+
 The GitHub Actions runner gets a different IP on every run: the workflow
 dynamically adds it to o2switch's SSH whitelist via the cPanel API (port
-2083) before attempting the SSH connection — a pattern taken from [this
-gist](https://gist.github.com/webaxones/54a9aee13bd9152e900ef30a0fcef3ed),
-specific to o2switch/cPanel hosting with IP-restricted SSH.
+2083) before attempting the SSH connection — logic lives in
+`.github/scripts/o2switch-whitelist.sh` (original pattern taken from
+[this gist](https://gist.github.com/webaxones/54a9aee13bd9152e900ef30a0fcef3ed),
+specific to o2switch/cPanel hosting with IP-restricted SSH). The script
+fails explicitly if the whitelist-add call doesn't report success
+(instead of silently continuing and failing later with an opaque SSH
+"Permission denied").
+
+`workflow_dispatch` takes a `dry_run` boolean input — the CI equivalent
+of `make deploy-dry-run`: build/whitelist/SSH run normally, but `rsync`
+gets `--dry-run` and the smoke test is skipped.
 
 ### Required GitHub secrets
 
@@ -291,6 +354,20 @@ Pipeline verified end to end on 2026-07-31.
    **authorized** (a separate checkbox, easy to miss): importing an SSH key
    isn't enough in cPanel, it must be explicitly authorized before it works
    for authentication.
+4. **CSS/JS missing in production after a deploy, no error anywhere**
+   (2026-08-02) — `actions/upload-artifact` excludes hidden files/dirs by
+   default since v4.4 (to avoid leaking secrets by accident); Vite's
+   manifest (`dist/.vite/manifest.json`) lives in a hidden folder, so the
+   artifact silently dropped it, `inc/vite.php` found no manifest and
+   enqueued nothing (no PHP error). Fixed with `include-hidden-files:
+   true` on `actions/upload-artifact`.
+5. **The same whitelist script resurfaced this bug** on the first run of
+   the merged pipeline (2026-08-03) — the `Deploy` job only ever did a
+   `download-artifact`, never a `checkout`: `.github/scripts/
+   o2switch-whitelist.sh` (extracted out of the YAML that same day) only
+   exists in the source repo, not in the deployable artifact (`.github`
+   is excluded from it). Fixed by adding `actions/checkout@v7` as the
+   first step of the `Deploy` job.
 
 ## Related files
 
@@ -298,6 +375,10 @@ Pipeline verified end to end on 2026-07-31.
   deployment config
 - `Makefile` — `deploy`, `deploy-dry-run`, `deploy-env`,
   `deploy-permalinks` targets
+- `.github/scripts/o2switch-whitelist.sh` — IP whitelisting logic (used
+  by the `Deploy` job)
+- `.github/actions/setup-php-composer/` — composite action (PHP setup +
+  Composer cache + `composer install`), used by `Build & Quality`
 - `bin/generate-production-env.php` — generates a production `.env`
   (random salts) from `.env.deploy`
 - `.github/workflows/deploy.yml` — CI/CD

@@ -136,7 +136,7 @@ Un template (`.gitmessage`) pré-remplit `git commit` (sans `-m`) — tout est e
 ```
 # <type>(<scope>): <emoji> <description>
 #
-# <optional body — explique le quoi et le pourquoi, pas le comment>
+# <optional body — explain the what and why, not the how>
 #
 # Verified-by: Pint <N> errors, PHPStan <N> errors, audit <N> advisories
 # Refs: #<issue>
@@ -145,18 +145,18 @@ Un template (`.gitmessage`) pré-remplit `git commit` (sans `-m`) — tout est e
 # Signed-off-by: <name> <email>
 #
 # ── Types ──────────────────────────────────────────────
-# feat      ✨  nouvelle fonctionnalité
-# fix       🐛  correction de bug
-# refactor  ♻️  refactor sans changement de comportement
-# perf      ⚡️  amélioration de performance
+# feat      ✨  new feature
+# fix       🐛  bug fix
+# refactor  ♻️  refactor, no behavior change
+# perf      ⚡️  performance improvement
 # docs      📝  documentation
-# style     💄  formatage, pas de logique
-# test      ✅  ajout/correction de tests
-# build     📦  dépendances, config de build
-# ci        👷  pipelines CI/CD
-# chore     🔧  maintenance, config divers
-# revert    ⏪  annulation d'un commit
-# security  🔒  correctif de sécurité
+# style     💄  formatting, no logic change
+# test      ✅  add/fix tests
+# build     📦  dependencies, build config
+# ci        👷  CI/CD pipelines
+# chore     🔧  misc maintenance/config
+# revert    ⏪  revert a commit
+# security  🔒  security fix
 ```
 
 À activer une fois en local (pas fait automatiquement) :

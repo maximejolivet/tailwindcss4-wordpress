@@ -40,8 +40,6 @@ Outillage qualité PHP (scripts composer, aussi disponibles en cibles `make` —
 - `composer audit` — scan des vulnérabilités des dépendances intégré à Composer. `roave/security-advisories` (dev uniquement, aucun code réel) bloque en plus `composer install`/`update` dès qu'un paquet a une CVE connue.
 - Aucune suite de tests, PHPCS/WPCS, PHPMD, ni lint JS/CSS configuré.
 
-Aucune suite de tests, PHPCS/WPCS, PHPMD, ni lint JS/CSS configuré pour l'instant dans le thème.
-
 ## Documentation
 
 - [`.claude/DOCKER.md`](.claude/DOCKER.md) — commandes Docker au quotidien (start/stop/logs, accès aux conteneurs, base de données)
