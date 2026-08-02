@@ -131,27 +131,16 @@ Nomenclature [qoomon/git-conventional-commits](https://github.com/qoomon/git-con
 
 Types : `feat`, `fix`, `refactor`, `perf`, `style`, `test`, `docs`, `build`, `ops`, `chore`.
 
-Un template (`.gitmessage`) pré-remplit `git commit` (sans `-m`) avec une checklist à cocher à la main avant de valider :
+Un template (`.gitmessage`) pré-remplit `git commit` (sans `-m`) : le sujet, un corps optionnel, et deux trailers en footer (`Verified-by:`, `Refs:`) — la checklist type/vérification reste disponible en commentaire (`#`, jamais incluse dans le message final) :
 
 ```
-<type>(<scope>): <description>
+<type>(<scope>): <emoji> <description>
 
-## Type de changement
-- [ ] ✨ Fonctionnalité API/UI (feat)
-- [ ] 🐛 Correction de bug API/UI (fix)
-- [ ] ♻️ Refactoring, sans changement de comportement (refactor)
-- [ ] ⚡ Performance (perf)
-- [ ] 🎨 Style / formatage (style)
-- [ ] ✅ Tests (test)
-- [ ] 📚 Documentation (docs)
-- [ ] 🛠️ Build / dépendances (build)
-- [ ] 🚀 Infra / déploiement / CI-CD (ops)
-- [ ] 🧹 Autre / housekeeping (chore)
+<optional body>
 
-## Vérification (Docker)
-- [ ] `make lint` — 0 erreur Pint
-- [ ] `make phpstan` — 0 erreur (niveau 5)
-- [ ] `make audit` — aucune advisory
+Verified-by: <lint, phpstan, audit>
+Refs: #<issue>
+Co-authored-by: <name> <email>
 ```
 
 À activer une fois en local (pas fait automatiquement) :
@@ -285,27 +274,16 @@ All commands run via `make` from the repo root (see `Makefile`; run `make help` 
 
 Types: `feat`, `fix`, `refactor`, `perf`, `style`, `test`, `docs`, `build`, `ops`, `chore`.
 
-A template (`.gitmessage`) pre-fills `git commit` (without `-m`) with a checklist to tick by hand before committing:
+A template (`.gitmessage`) pre-fills `git commit` (without `-m`): the subject, an optional body, and two footer trailers (`Verified-by:`, `Refs:`) — the change-type/verification checklist stays available as a comment (`#`, never part of the final message):
 
 ```
-<type>(<scope>): <description>
+<type>(<scope>): <emoji> <description>
 
-## Type de changement
-- [ ] ✨ Fonctionnalité API/UI (feat)
-- [ ] 🐛 Correction de bug API/UI (fix)
-- [ ] ♻️ Refactoring, sans changement de comportement (refactor)
-- [ ] ⚡ Performance (perf)
-- [ ] 🎨 Style / formatage (style)
-- [ ] ✅ Tests (test)
-- [ ] 📚 Documentation (docs)
-- [ ] 🛠️ Build / dépendances (build)
-- [ ] 🚀 Infra / déploiement / CI-CD (ops)
-- [ ] 🧹 Autre / housekeeping (chore)
+<optional body>
 
-## Vérification (Docker)
-- [ ] `make lint` — 0 erreur Pint
-- [ ] `make phpstan` — 0 erreur (niveau 5)
-- [ ] `make audit` — aucune advisory
+Verified-by: <lint, phpstan, audit>
+Refs: #<issue>
+Co-authored-by: <name> <email>
 ```
 
 Opt in once locally (not wired up automatically):

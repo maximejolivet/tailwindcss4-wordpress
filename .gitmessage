@@ -1,25 +1,48 @@
-<type>(<scope>): <description>
+<type>(<scope>): <emoji> <description>
 
-## Type de changement
-- [ ] ✨ Fonctionnalité API/UI (feat)
-- [ ] 🐛 Correction de bug API/UI (fix)
-- [ ] ♻️ Refactoring, sans changement de comportement (refactor)
-- [ ] ⚡ Performance (perf)
-- [ ] 🎨 Style / formatage (style)
-- [ ] ✅ Tests (test)
-- [ ] 📚 Documentation (docs)
-- [ ] 🛠️ Build / dépendances (build)
-- [ ] 🚀 Infra / déploiement / CI-CD (ops)
-- [ ] 🧹 Autre / housekeeping (chore)
+<optional body>
 
-## Vérification (Docker)
-- [ ] `make lint` — 0 erreur Pint
-- [ ] `make phpstan` — 0 erreur (niveau 5)
-- [ ] `make audit` — aucune advisory
+Verified-by: <lint, phpstan, audit>
+Refs: #<issue>
+Co-authored-by: <name> <email>
 
-# Rappels (voir .claude/skills/semantic-commit-messages/) :
-# - <type> : feat, fix, refactor, perf, style, test, docs, build, ops, chore
-# - <scope> optionnel : partie du repo touchée (deploy, theme, docker...), jamais un n° d'issue
-# - <description> à l'impératif présent, minuscule, sans point final
-# - Breaking change : "!" après le type/scope, ou footer "BREAKING CHANGE: ..."
-# - Les lignes commençant par # ne seront pas incluses dans le message
+# Format enforced by the commitlint/Husky hook (see commitlint.config.js
+# and .claude/skills/semantic-commit-messages/) — a message that doesn't
+# follow these rules is REJECTED at commit time, not just discouraged:
+# - <type>: feat, fix, refactor, perf, style, test, docs, build, ops, chore
+#   (no other word, no capitalization, no space inside <type>)
+# - <scope> optional: the area of the repo touched (deploy, theme,
+#   docker...), never an issue number
+# - <emoji>: optional but recommended, at the start of <description>,
+#   chosen per <type> — the emoji is part of <description>: commitlint
+#   only parses "type(scope):", so this doesn't break validation:
+#   [ ] ✨ API/UI feature (feat)
+#   [ ] 🐛 API/UI bug fix (fix)
+#   [ ] ♻️ Refactoring, no behavior change (refactor)
+#   [ ] ⚡ Performance (perf)
+#   [ ] 🎨 Style / formatting (style)
+#   [ ] ✅ Tests (test)
+#   [ ] 📚 Documentation (docs)
+#   [ ] 🛠️ Build / dependencies (build)
+#   [ ] 🚀 Infra / deployment / CI-CD (ops)
+#   [ ] 🧹 Other / housekeeping (chore)
+# - <description>: imperative present tense, lowercase, NO trailing period
+# - Breaking change: "!" after the type/scope, or a "BREAKING CHANGE: ..."
+#   footer
+#
+# Multi-line body (optional, separated from the subject by a blank line):
+# one "- ..." bullet per distinct concern if the commit touches several
+# points; otherwise a short paragraph is enough.
+#
+# Footer trailers below the body, one per line, delete what doesn't apply:
+# - Verified-by: comma-separated subset of what you actually ran before
+#   committing — check against this list, then write the ones that pass:
+#   [ ] make lint     — 0 Pint errors
+#   [ ] make phpstan  — 0 errors (level 5)
+#   [ ] make audit    — no advisories
+# - Refs: GitHub issue number if relevant ("Refs #123", "Closes #123")
+# - Co-authored-by: standard git trailer to credit a pair/contributor who
+#   isn't the committer (GitHub renders it on the commit) — delete this
+#   line entirely if solo
+#
+# Lines starting with # are stripped and won't be part of the message.
