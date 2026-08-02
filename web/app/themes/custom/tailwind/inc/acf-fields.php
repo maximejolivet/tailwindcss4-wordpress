@@ -13,6 +13,8 @@
 namespace App\Theme;
 
 add_action('acf/init', function () {
+    $url_field_instructions = 'Chemin relatif (/contact) ou URL absolue.';
+
     acf_add_local_field_group([
         'key' => 'group_page_sections',
         'title' => 'Sections de page',
@@ -64,7 +66,7 @@ add_action('acf/init', function () {
                                 'label' => 'URL du bouton',
                                 'name' => 'cta_url',
                                 'type' => 'text',
-                                'instructions' => 'Chemin relatif (/contact) ou URL absolue.',
+                                'instructions' => $url_field_instructions,
                                 'conditional_logic' => [
                                     [
                                         [
@@ -177,7 +179,7 @@ add_action('acf/init', function () {
                                                         'label' => 'Lien',
                                                         'name' => 'url',
                                                         'type' => 'text',
-                                                        'instructions' => 'Chemin relatif (/contact) ou URL absolue.',
+                                                        'instructions' => $url_field_instructions,
                                                     ],
                                                 ],
                                             ],
@@ -215,7 +217,7 @@ add_action('acf/init', function () {
                                                 'label' => 'URL du bouton',
                                                 'name' => 'cta_url',
                                                 'type' => 'text',
-                                                'instructions' => 'Chemin relatif (/contact) ou URL absolue.',
+                                                'instructions' => $url_field_instructions,
                                                 'required' => 1,
                                             ],
                                         ],
