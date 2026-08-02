@@ -38,5 +38,5 @@
 }
 
 body {
-    @apply bg-success;
+    @apply bg-white text-black;
 }
