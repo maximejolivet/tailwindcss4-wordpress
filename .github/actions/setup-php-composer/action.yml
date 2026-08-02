@@ -1,0 +1,29 @@
+name: 'Set up PHP and Composer'
+description: 'Installs PHP 8.4 and runs composer install, with the download cache (~/.composer/cache) shared across jobs/runs via composer.lock hash'
+inputs:
+  composer-args:
+    description: 'Arguments passed to `composer install` (e.g. "--no-dev --optimize-autoloader --no-interaction")'
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Install PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.4'
+        coverage: none
+
+    # Caches the download cache, not vendor/ itself — vendor/ still
+    # installs fresh every run (flags differ between callers: quality
+    # checks need dev deps, the deployable build doesn't), but package
+    # archives don't get re-downloaded when composer.lock is unchanged.
+    - name: Cache Composer packages
+      uses: actions/cache@v6
+      with:
+        path: ~/.composer/cache
+        key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+        restore-keys: composer-${{ runner.os }}-
+
+    - name: Composer install
+      shell: bash
+      run: composer install ${{ inputs.composer-args }}

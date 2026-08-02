@@ -4,21 +4,26 @@
 # dynamically whitelists the runner's IP via the cPanel API before
 # attempting SSH (see https://faq.o2switch.fr/cpanel/outils/exception-parefeu/).
 #
-# Three jobs, not one long list of steps:
-#   quality — composer lint (Pint) + phpstan + audit. No secrets, no SSH,
-#             no build. Gates the two jobs below: a style/static-analysis/
-#             CVE regression should never reach production.
-#   build   — checkout, composer install --no-dev, npm build. No secrets, no
-#             SSH. Stages the exact deployable tree (excludes dev-only files)
-#             and uploads it as an artifact.
+# Two jobs, not one long list of steps:
+#   build   — checkout, composer install (with dev deps) + Pint/PHPStan/
+#             audit, THEN composer install --no-dev to prune back down for
+#             the artifact, npm build. No secrets, no SSH. Stages the exact
+#             deployable tree (excludes dev-only files) and uploads it as
+#             an artifact. Quality checks used to be a separate `quality`
+#             job gating this one — merged in because splitting them ran
+#             `shivammathur/setup-php` and `composer install` twice in
+#             sequence (needs: quality made them strictly sequential
+#             anyway, never parallel) for zero benefit beyond a separate
+#             checkmark in the UI. Gating behavior is unchanged: if lint/
+#             phpstan/audit fail, the job stops before npm build/staging/
+#             upload ever run.
 #   deploy  — downloads that artifact, whitelists the runner's IP, then
 #             rsyncs it to the server over SSH.
 # IMPORTANT: the IP whitelist step and the rsync/ssh steps MUST stay in the
 # SAME job. Every job gets a fresh runner VM with its own public IP — if
 # whitelisting ran in a separate job from the SSH steps, the two would
 # almost certainly run from different IPs and every deploy would fail with
-# "Permission denied" for no obvious reason. Splitting `quality`/`build` out
-# is safe specifically because neither of them touches SSH.
+# "Permission denied" for no obvious reason.
 #
 # Required secrets (Settings > Secrets and variables > Actions):
 # - DEPLOY_SSH_KEY          SSH private key (dedicated to deployment, not a personal key)
@@ -29,6 +34,24 @@
 #                           API (port 2083), unrelated to the SSH key above.
 #                           Add it yourself via `gh secret set`, never paste
 #                           it in chat.
+#
+# Extras beyond the bare minimum:
+# - `workflow_dispatch` takes a `dry_run` boolean input — runs everything
+#   (build, whitelist, SSH) but passes `--dry-run` to the final rsync, the
+#   CI equivalent of `make deploy-dry-run`. The post-rsync smoke test is
+#   skipped on a dry run since the server is never actually touched.
+# - `deploy` declares a `production` GitHub environment (Settings >
+#   Environments), which gives this workflow a deployment history/URL in
+#   the GitHub UI and a place to add protection rules later if ever needed.
+# - A smoke test after rsync curls the live site and checks the theme's
+#   CSS/JS got enqueued — this specific check would have caught the
+#   2026-08-02 outage (dist/.vite/manifest.json silently dropped by
+#   upload-artifact) automatically instead of needing a human to notice.
+# - IP whitelisting logic lives in .github/scripts/o2switch-whitelist.sh,
+#   not inline here — it now fails the job explicitly if the o2switch API
+#   reports the whitelist add didn't succeed (e.g. quota full), rather than
+#   silently sleeping and letting a later step fail with an opaque SSH
+#   "Permission denied".
 
 name: Deploy
 
@@ -36,6 +59,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (rsync --dry-run, changes nothing on the server — CI equivalent of `make deploy-dry-run`)'
+        type: boolean
+        default: false
 
 # Queues overlapping runs instead of letting them race: two concurrent runs
 # would interleave whitelist add/remove calls and rsync --delete to the same
@@ -45,35 +73,25 @@ concurrency:
   group: deploy-${{ github.ref }}
 
 jobs:
-  quality:
-    name: Quality (Pint, PHPStan, audit)
+  build:
+    name: Build & Quality
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@v7
 
-      - name: Install PHP
-        uses: shivammathur/setup-php@v2
+      # Full install (with dev deps: Pint, PHPStan, stubs) — needed for the
+      # quality checks right below. Pruned back to --no-dev further down,
+      # once those checks have passed, for what actually ships.
+      - name: Set up PHP + install dependencies (with dev, for quality checks)
+        uses: ./.github/actions/setup-php-composer
         with:
-          php-version: '8.4'
-          coverage: none
-
-      - name: Cache Composer packages
-        uses: actions/cache@v6
-        with:
-          path: ~/.composer/cache
-          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
-          restore-keys: composer-${{ runner.os }}-
+          composer-args: '--prefer-dist --no-interaction --no-progress'
 
       - name: Validate composer.json/composer.lock
         run: composer validate --strict --no-check-publish
-
-      # Dev dependencies (Pint, PHPStan, stubs) are required here, unlike
-      # the build job below which runs --no-dev — this job never ships
-      # anything, it only lints/analyses.
-      - name: Install dependencies
-        run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Pint — code style
         run: composer lint
@@ -84,36 +102,15 @@ jobs:
       - name: Composer audit — CVE scan
         run: composer audit
 
-  build:
-    name: Build
-    needs: quality
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v7
-
-      # vendor/ is built here (on the runner) rather than on the server:
+      # vendor/ is rebuilt here (on the runner) rather than on the server:
       # a fresh checkout has no dev vendor/ to accidentally wipe, unlike a
       # developer's machine running `composer install --no-dev` locally
       # (see .claude/DEPLOY.md §3 for why `make deploy` does the opposite).
-      - name: Install PHP dependencies
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-
-      # Caches Composer's download cache (~/.composer/cache), not vendor/
-      # itself — vendor/ still gets rebuilt fresh every run (--no-dev), but
-      # package archives don't get re-downloaded when composer.lock is
-      # unchanged.
-      - name: Cache Composer packages
-        uses: actions/cache@v6
-        with:
-          path: ~/.composer/cache
-          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
-          restore-keys: composer-${{ runner.os }}-
-
-      - run: composer install --prefer-dist --no-dev --optimize-autoloader --no-interaction
+      # Plain `composer install` here, not the composite action again —
+      # PHP is already set up from the step above, re-running the action
+      # would redundantly re-run shivammathur/setup-php for no reason.
+      - name: Prune to production dependencies
+        run: composer install --prefer-dist --no-dev --optimize-autoloader --no-interaction
 
       # cache: npm + cache-dependency-path avoids re-downloading the theme's
       # node_modules every run when package-lock.json hasn't changed.
@@ -164,6 +161,10 @@ jobs:
     name: Deploy
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: https://wordpress.jolivetmaxime.fr
     permissions:
       contents: read
     steps:
@@ -179,43 +180,38 @@ jobs:
         id: ip
         run: echo "ipv4=$(curl -sS https://api.ipify.org)" >> "$GITHUB_OUTPUT"
 
-      # o2switch caps the number of whitelisted IPs, and since every run adds
-      # a new one and nothing removes old ones on its own, the quota fills up
-      # after a few runs and blocks SSH entirely. Uses the JSON list endpoint
-      # (?r=list, .data.list[].address) instead of scraping HTML, and removes
-      # both `in` and `out` directions for the last 2 entries (o2switch
-      # tracks directions separately) before re-adding the current runner IP.
+      # Logic lives in .github/scripts/o2switch-whitelist.sh (uses the JSON
+      # list endpoint, ?r=list/.data.list[].address, instead of scraping
+      # HTML) — extracted out of the workflow so it's testable/readable on
+      # its own, and so it can fail the job explicitly (checks the ?r=add
+      # response's .success field) instead of silently sleeping and letting
+      # a later SSH step fail with an opaque "Permission denied" when the
+      # real cause is the o2switch whitelist quota being full.
       - name: Whitelist IP on hosting & delete github old ones (o2switch)
-        shell: bash
+        env:
+          CPANEL_USER: ${{ secrets.DEPLOY_SSH_USER }}
+          CPANEL_PASSWORD: ${{ secrets.DEPLOY_CPANEL_PASSWORD }}
+          CPANEL_HOST: ${{ secrets.DEPLOY_SSH_HOST }}
+          RUNNER_IP: ${{ steps.ip.outputs.ipv4 }}
+        run: .github/scripts/o2switch-whitelist.sh
+
+      # Replaces a blind `sleep 65` (always paid in full, even when the
+      # firewall change propagates in a few seconds) with a poll loop:
+      # exits as soon as the port opens, and fails with a clear message
+      # instead of proceeding to a cryptic SSH "Permission denied" if it
+      # never does within the budget.
+      - name: Wait for SSH port to open (post-whitelist propagation)
         run: |
-          ENDPOINT='frontend/o2switch/o2switch-ssh-whitelist/index.live.php'
-          CPANEL="https://${{ secrets.DEPLOY_SSH_USER }}:${{ secrets.DEPLOY_CPANEL_PASSWORD }}@${{ secrets.DEPLOY_SSH_HOST }}:2083"
-
-          echo "Get actual whitelisted IPs..."
-          RESPONSE=$(curl -sX GET "$CPANEL/$ENDPOINT?r=list")
-          echo "Response: $RESPONSE"
-          LAST_IPS=$(echo "$RESPONSE" | jq -r '.data.list[] | .address' | tail -n2)
-
-          for address in $LAST_IPS; do
-            echo "Delete this github IP: $address (in & out)"
-            curl -sX GET "$CPANEL/$ENDPOINT?r=remove&address=$address&direction=in&port=22" | jq
-            sleep 3
-            curl -sX GET "$CPANEL/$ENDPOINT?r=remove&address=$address&direction=out&port=22" | jq
-            sleep 3
+          echo "Waiting for ${{ secrets.DEPLOY_SSH_HOST }}:22 to accept connections..."
+          for i in $(seq 1 24); do
+            if timeout 5 bash -c 'cat < /dev/null > /dev/tcp/${{ secrets.DEPLOY_SSH_HOST }}/22' 2>/dev/null; then
+              echo "TCP connect OK after $((i * 5))s"
+              exit 0
+            fi
+            sleep 5
           done
-
-          echo "Attempt to whitelist IP..."
-          curl -sX POST -d 'whitelist[address]=${{ steps.ip.outputs.ipv4 }}' -d 'whitelist[port]=22' "$CPANEL/$ENDPOINT?r=add" | jq
-          sleep 65
-
-      # Isolates network-level reachability from SSH-specific failures
-      # (auth, host key, etc.) when diagnosing a broken run.
-      - name: Raw TCP connectivity check (before ssh-agent, no key needed)
-        run: |
-          echo "Testing TCP connect to ${{ secrets.DEPLOY_SSH_HOST }}:22 ..."
-          timeout 10 bash -c 'cat < /dev/null > /dev/tcp/${{ secrets.DEPLOY_SSH_HOST }}/22' \
-            && echo "TCP connect OK" \
-            || echo "TCP connect FAILED (still blocked, or wrong host/port)"
+          echo "::error::TCP connect to ${{ secrets.DEPLOY_SSH_HOST }}:22 still failing after 120s — whitelist may not have propagated yet, or host/port is wrong."
+          exit 1
 
       # Loads DEPLOY_SSH_KEY into an ssh-agent rather than writing it to a
       # file by hand: a raw `printf '%s' "$SECRET" > keyfile` approach once
@@ -252,8 +248,28 @@ jobs:
       # cache-busted) instead of being deleted.
       - name: Rsync to o2switch
         run: |
-          rsync -avz --delete \
+          rsync -avz --delete ${{ inputs.dry_run && '--dry-run' || '' }} \
             --filter='P web/app/themes/custom/tailwind/dist/assets/**' \
             --exclude 'web/app/uploads' --exclude 'web/app/cache' \
             --exclude '.env' --exclude '.env.*' \
             site/ "${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }}:${{ secrets.DEPLOY_PROJECT_PATH }}/"
+
+      # Would have caught the 2026-08-02 outage automatically (dist/.vite/
+      # manifest.json silently dropped by upload-artifact, inc/vite.php
+      # skipped enqueuing the theme's CSS/JS with no error) instead of
+      # relying on a human noticing the site looked unstyled. Skipped on a
+      # dry run — rsync --dry-run doesn't touch the server, so the live
+      # site's HTML wouldn't reflect this run either way.
+      - name: Smoke test — verify the theme's CSS/JS are enqueued
+        if: ${{ !inputs.dry_run }}
+        run: |
+          for i in 1 2 3; do
+            HTML=$(curl -skf "https://wordpress.jolivetmaxime.fr/?smoke_test=$(date +%s)") && break
+            echo "Attempt $i failed, retrying in 5s..."
+            sleep 5
+          done
+          if ! echo "$HTML" | grep -q 'dist/assets/'; then
+            echo "::error::Homepage HTML has no reference to dist/assets/ — the theme's CSS/JS may not be enqueued (see inc/vite.php: enqueue_vite_assets() silently returns if dist/.vite/manifest.json is missing or unreadable)."
+            exit 1
+          fi
+          echo "Smoke test OK: dist/assets/ reference found in the homepage HTML."
