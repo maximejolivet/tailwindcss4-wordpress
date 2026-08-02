@@ -1,12 +1,16 @@
-<type>(<scope>): <subject>
+<type>(<scope>): <description>
 
 ## Type de changement
-- [ ] ✨ Nouvelle fonctionnalité (feat)
-- [ ] 🐛 Correction de bug (fix)
-- [ ] ♻️ Refactoring / dette (refactor/chore)
-- [ ] 📚 Documentation (docs)
+- [ ] ✨ Fonctionnalité API/UI (feat)
+- [ ] 🐛 Correction de bug API/UI (fix)
+- [ ] ♻️ Refactoring, sans changement de comportement (refactor)
+- [ ] ⚡ Performance (perf)
 - [ ] 🎨 Style / formatage (style)
 - [ ] ✅ Tests (test)
+- [ ] 📚 Documentation (docs)
+- [ ] 🛠️ Build / dépendances (build)
+- [ ] 🚀 Infra / déploiement / CI-CD (ops)
+- [ ] 🧹 Autre / housekeeping (chore)
 
 ## Vérification (Docker)
 - [ ] `make lint` — 0 erreur Pint
@@ -14,7 +18,8 @@
 - [ ] `make audit` — aucune advisory
 
 # Rappels (voir .claude/skills/semantic-commit-messages/) :
-# - <type> : feat, fix, docs, style, refactor, test, chore
-# - <scope> optionnel : partie du repo touchée (deploy, theme, docker...)
-# - <subject> au présent, court, sans point final
+# - <type> : feat, fix, refactor, perf, style, test, docs, build, ops, chore
+# - <scope> optionnel : partie du repo touchée (deploy, theme, docker...), jamais un n° d'issue
+# - <description> à l'impératif présent, minuscule, sans point final
+# - Breaking change : "!" après le type/scope, ou footer "BREAKING CHANGE: ..."
 # - Les lignes commençant par # ne seront pas incluses dans le message

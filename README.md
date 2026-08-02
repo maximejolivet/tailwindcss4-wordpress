@@ -127,20 +127,26 @@ Toutes les commandes s'exécutent via `make` depuis la racine du repo (voir `Mak
 
 ## Convention de commit
 
-Format [Conventional Commits](https://www.conventionalcommits.org/) (`<type>(<scope>): <subject>`), imposé localement par un hook `commitlint`/Husky (`commit-msg`) — voir [`.claude/skills/semantic-commit-messages/`](.claude/skills/semantic-commit-messages/SKILL.md).
+Nomenclature [qoomon/git-conventional-commits](https://github.com/qoomon/git-conventional-commits) (`<type>(<scope>): <description>`), superset opinionated des [Conventional Commits](https://www.conventionalcommits.org/) — imposée localement par un hook `commitlint`/Husky (`commit-msg`, type-enum personnalisé dans `commitlint.config.js`) — voir [`.claude/skills/semantic-commit-messages/`](.claude/skills/semantic-commit-messages/SKILL.md) pour le détail (types, breaking changes, versioning).
+
+Types : `feat`, `fix`, `refactor`, `perf`, `style`, `test`, `docs`, `build`, `ops`, `chore`.
 
 Un template (`.gitmessage`) pré-remplit `git commit` (sans `-m`) avec une checklist à cocher à la main avant de valider :
 
 ```
-<type>(<scope>): <subject>
+<type>(<scope>): <description>
 
 ## Type de changement
-- [ ] ✨ Nouvelle fonctionnalité (feat)
-- [ ] 🐛 Correction de bug (fix)
-- [ ] ♻️ Refactoring / dette (refactor/chore)
-- [ ] 📚 Documentation (docs)
+- [ ] ✨ Fonctionnalité API/UI (feat)
+- [ ] 🐛 Correction de bug API/UI (fix)
+- [ ] ♻️ Refactoring, sans changement de comportement (refactor)
+- [ ] ⚡ Performance (perf)
 - [ ] 🎨 Style / formatage (style)
 - [ ] ✅ Tests (test)
+- [ ] 📚 Documentation (docs)
+- [ ] 🛠️ Build / dépendances (build)
+- [ ] 🚀 Infra / déploiement / CI-CD (ops)
+- [ ] 🧹 Autre / housekeeping (chore)
 
 ## Vérification (Docker)
 - [ ] `make lint` — 0 erreur Pint
@@ -275,20 +281,26 @@ All commands run via `make` from the repo root (see `Makefile`; run `make help` 
 
 ## Commit convention
 
-[Conventional Commits](https://www.conventionalcommits.org/) format (`<type>(<scope>): <subject>`), enforced locally by a `commitlint`/Husky `commit-msg` hook — see [`.claude/skills/semantic-commit-messages/`](.claude/skills/semantic-commit-messages/SKILL.md).
+[qoomon/git-conventional-commits](https://github.com/qoomon/git-conventional-commits) nomenclature (`<type>(<scope>): <description>`), an opinionated superset of [Conventional Commits](https://www.conventionalcommits.org/) — enforced locally by a `commitlint`/Husky `commit-msg` hook (custom type-enum in `commitlint.config.js`) — see [`.claude/skills/semantic-commit-messages/`](.claude/skills/semantic-commit-messages/SKILL.md) for the full detail (types, breaking changes, versioning).
+
+Types: `feat`, `fix`, `refactor`, `perf`, `style`, `test`, `docs`, `build`, `ops`, `chore`.
 
 A template (`.gitmessage`) pre-fills `git commit` (without `-m`) with a checklist to tick by hand before committing:
 
 ```
-<type>(<scope>): <subject>
+<type>(<scope>): <description>
 
 ## Type de changement
-- [ ] ✨ Nouvelle fonctionnalité (feat)
-- [ ] 🐛 Correction de bug (fix)
-- [ ] ♻️ Refactoring / dette (refactor/chore)
-- [ ] 📚 Documentation (docs)
+- [ ] ✨ Fonctionnalité API/UI (feat)
+- [ ] 🐛 Correction de bug API/UI (fix)
+- [ ] ♻️ Refactoring, sans changement de comportement (refactor)
+- [ ] ⚡ Performance (perf)
 - [ ] 🎨 Style / formatage (style)
 - [ ] ✅ Tests (test)
+- [ ] 📚 Documentation (docs)
+- [ ] 🛠️ Build / dépendances (build)
+- [ ] 🚀 Infra / déploiement / CI-CD (ops)
+- [ ] 🧹 Autre / housekeeping (chore)
 
 ## Vérification (Docker)
 - [ ] `make lint` — 0 erreur Pint
