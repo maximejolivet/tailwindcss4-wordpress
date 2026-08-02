@@ -135,7 +135,15 @@ DEPLOY_SSH = ssh -p $(DEPLOY_SSH_PORT) $(DEPLOY_SSH_USER)@$(DEPLOY_SSH_HOST)
 # includes must come first) — otherwise `vite-build`'s output never leaves
 # the runner/machine and the server keeps serving a stale or missing
 # manifest.json (breaks CSS/JS in production).
-DEPLOY_RSYNC_EXCLUDES = --include 'web/app/themes/**/dist/' --include 'web/app/themes/**/dist/**' --exclude-from=.gitignore --exclude '.git' --exclude 'docker' --exclude '.env.deploy*'
+# The 'P' (protect) filter keeps previously deployed dist/assets/* files
+# from being removed by --delete: Vite content-hashes every filename, so
+# each deploy ships new hashed files without touching old ones, but --delete
+# would otherwise delete the old ones in the same rsync pass that overwrites
+# index.php/manifest.json — any visitor whose page is still referencing the
+# old hash (mid-deploy or just before it) would get a 404 on their CSS/JS.
+# Orphaned old hashes just accumulate in dist/assets/ (small, immutable,
+# cache-busted) instead of being deleted.
+DEPLOY_RSYNC_EXCLUDES = --include 'web/app/themes/**/dist/' --include 'web/app/themes/**/dist/**' --filter='P web/app/themes/**/dist/assets/**' --exclude-from=.gitignore --exclude '.git' --exclude 'docker' --exclude '.env.deploy*'
 
 deploy-dry-run: vite-build ## Preview what `make deploy` would sync/delete on the server, without changing anything
 	rsync -avzn --delete $(DEPLOY_RSYNC_EXCLUDES) -e "ssh -p $(DEPLOY_SSH_PORT)" \

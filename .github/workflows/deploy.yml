@@ -189,9 +189,20 @@ jobs:
       # exists on the server). Without this exclude here, --delete wipes
       # the live .env on every deploy — this is not hypothetical, it's
       # exactly what happened on the first run of this split pipeline.
+      #
+      # The 'P' (protect) filter keeps previously deployed dist/assets/*
+      # files from being removed by --delete: Vite content-hashes every
+      # filename, so each deploy ships new hashed files without touching
+      # old ones, but --delete would otherwise remove the old ones in the
+      # same pass that overwrites manifest.json/index.php — any visitor
+      # whose page still references the old hash (loaded just before or
+      # during the deploy) would get a 404 on their CSS/JS. Orphaned old
+      # hashes just accumulate in dist/assets/ (small, immutable,
+      # cache-busted) instead of being deleted.
       - name: Rsync to o2switch
         run: |
           rsync -avz --delete \
+            --filter='P web/app/themes/custom/tailwind/dist/assets/**' \
             --exclude 'web/app/uploads' --exclude 'web/app/cache' \
             --exclude '.env' --exclude '.env.*' \
             site/ "${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }}:${{ secrets.DEPLOY_PROJECT_PATH }}/"

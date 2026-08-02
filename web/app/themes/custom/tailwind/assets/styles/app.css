@@ -36,3 +36,7 @@
 
     --spacing-section: 6rem;
 }
+
+body {
+    @apply bg-success;
+}
