@@ -1,269 +1,3 @@
-# 🇬🇧 Context
-You're working on this WordPress project managed with [Bedrock](https://roots.io/bedrock/)
-(repo root = Bedrock root: `composer.json`, `config/`, `web/wp` for
-WordPress core, `web/app` for themes/plugins/uploads). The custom theme
-`web/app/themes/custom/tailwind` already exists: Timber v2 (Twig templates in
-`views/`), Tailwind CSS v4 compiled by Vite with HMR already working (see
-[`theme.md`](../theme.md) for the pipeline detail). Goal:
-industrialize the front end with reusable Twig components, consumed by
-an editorial ACF Flexible Content page builder, on a multilingual FR/EN site
-via Polylang. Agency purpose: reduce Twig duplication, make multi-project
-Bedrock+Timber delivery more reliable, with Tailwind tokens (`@theme`) being
-the only customization point between projects built on this same foundation.
-
-## Table of contents
-
-- [Mission](#mission)
-  - [1. Build pipeline (already in place, to extend)](#1-build-pipeline-already-in-place-to-extend)
-  - [2. Design tokens](#2-design-tokens)
-  - [3. Twig component structure](#3-twig-component-structure)
-  - [4. Starting components (typed props in a comment + slots via `{% block %}`)](#4-starting-components-typed-props-in-a-comment-slots-via-block-)
-  - [5. Variant pattern in Twig](#5-variant-pattern-in-twig)
-  - [6. Timber / WordPress integration](#6-timber-wordpress-integration)
-  - [7. Page builder with ACF Flexible Content (multilingual)](#7-page-builder-with-acf-flexible-content-multilingual)
-  - [8. Multilingual — global config (Polylang)](#8-multilingual-global-config-polylang)
-  - [9. Quality / CI](#9-quality-ci)
-- [Constraints](#constraints)
-- [Deliverables](#deliverables)
-
-# Mission
-
-## 1. Build pipeline (already in place, to extend)
-The Vite + Tailwind v4 pipeline already exists and is documented in
-`theme.md`: single entry point `assets/styles/app.css`
-(`@import "tailwindcss"`), explicit `@source`, dev/prod switch in
-`inc/vite.php`, HMR (`phpTwigReload` plugin + polling for Colima/virtiofs).
-Only to extend:
-- if the components (mission §3) live outside `views/`, add the matching
-  `@source` line in `assets/styles/app.css` (otherwise the existing
-  `@source "../../views/**/*.twig"` is already enough)
-- `npm run lint:components` script (validates the props headers, see
-  §3) and `npm run prettier:check` (Prettier + `prettier-plugin-tailwindcss`
-  for class ordering), ESLint on `assets/scripts/**/*.js`
-
-## 2. Design tokens
-`@theme` block in `assets/styles/app.css` (to create — currently absent,
-the theme uses Tailwind's default colors): semantic colors
-(`--color-primary/-hover`, `--color-surface/-alt`, `--color-text/-muted`,
-`--color-border`, etc.), spacing, fonts, radius. No arbitrary
-`[...]` value in components unless justified in a comment. The tokens
-are the only customization point between the agency's projects built on this
-theme.
-
-## 3. Twig component structure
-Under `views/components/` (to create, distinct from the already-existing
-`views/templates/` and `views/partials/`): `01-atoms/`, `02-molecules/`,
-`03-organisms/`. Each component: one `*.twig`, one `README.md` with a real
-usage example. Timber/Twig has no native equivalent to Drupal's Single
-Directory Components props schema (no automatic type validation):
-document the expected props in a Twig comment at the top of the file, e.g.
-
-```twig
-{#
-  Props: variant (primary|secondary|ghost, default: primary), size (sm|md|lg, default: md),
-         url (optional — renders <a> instead of <button>), disabled (bool)
-#}
-```
-
-and in the component's `README.md` — this is a team convention, not an
-automated constraint (see §9 for an in-house linter that at least checks the
-presence of this block). Every component WITHOUT slots must be renderable
-in isolation via `{% include 'components/01-atoms/button/button.twig' with
-{...} only %}` — always with `only`, so it never implicitly depends
-on the page's context (`post`, `site`, `menu`…) or WordPress entities.
-
-**Exception confirmed in practice**: for a component with slots (`{% block
-%}`, consumed via `{% embed %}` — see §4 `card`), NEVER put `only`
-on the `{% embed %}` tag itself. The content of the blocks defined there
-runs in the calling page's scope — that's what lets it
-use `post.title`, `site.theme.link`, etc. to compose the actual
-content. `only` on the embed cuts off that access for the whole block, including
-nested `{% include ... only %}` calls inside the slots, which then
-receive empty variables with no Twig error (silent, hence dangerous — only
-caught by actually rendering the page). Each `{% include %}` nested
-inside a slot keeps its own `only`: it's the one that isolates the
-leaf component, not the enclosing embed.
-
-## 4. Starting components (typed props in a comment + slots via `{% block %}`)
-- `button`: primary/secondary/ghost variants, sm/md/lg sizes, `url` prop
-  (renders `<a>` or `<button>`), `disabled` prop
-- `card`: image/title/content/footer slots, horizontal variant
-- `heading`: `level` prop (1-6, semantic) decoupled from `size` prop (visual)
-- `badge`, `tag`, `icon` (SVG sprite in `assets/images/sprite.svg`)
-- `hero` (organism): title, subtitle, media, cta
-
-## 5. Variant pattern in Twig
-Mapping via a Twig object, never dynamic class concatenation (Tailwind's
-detector wouldn't see `bg-{{ color }}`):
-
-```twig
-{% set variants = {
-  primary: 'bg-primary text-white hover:bg-primary-hover',
-  secondary: 'bg-transparent border border-primary text-primary',
-} %}
-<button class="inline-flex items-center rounded-md {{ variants[variant|default('primary')] }} {{ sizes[size|default('md')] }}">
-```
-
-## 6. Timber / WordPress integration
-- consumption via `{% include 'components/01-atoms/button.twig' with {...} only %}`
-- the existing template hierarchy (`theme.md`) stays the same:
-  `views/templates/single-{post_type}.twig`, `page-{slug}.twig`, etc.
-- WYSIWYG content (`post.content` or ACF `wysiwyg` field): `prose` class
-  (`@tailwindcss/typography`, already in place in `assets/styles/app.css`) —
-  the only place where `@apply` is tolerated if an adjustment is needed (in
-  `assets/styles/app.css`, never in a component)
-- Preflight: Tailwind v4 enables it by default via `@import "tailwindcss"`;
-  document in the architecture README (§ Deliverables) the restyling
-  strategy for tags injected by WordPress plugins (shortcodes,
-  third-party widgets) that don't have a dedicated component
-
-## 7. Page builder with ACF Flexible Content (multilingual)
-Plugins via Composer: `advanced-custom-fields-pro` (or `secure-custom-fields`
-if budget-constrained — flexible content is available there since it went
-free; it's also the only option installable via Composer without a
-license key, since ACF Pro is never distributed on the wordpress.org SVN),
-`polylang` (`polylang-pro` if advanced field synchronization is needed).
-Real package name: **`wp-plugin/<slug>`**, not `wpackagist-plugin/<slug>` —
-since Bedrock 1.30, [WP Packages](https://roots.io/wp-composer-is-now-wp-packages/)
-(`repo.wp-packages.org`, see `composer.json`) is the **official**
-package source replacing WPackagist, not a convention specific to this
-repo (confirmed by `composer show wp-plugin/polylang --all`).
-
-### a. Translation architecture — SYMMETRIC, non-negotiable
-- each Polylang translation of a post is a distinct WordPress post (linked
-  via `pll_get_post_translations`): the ACF Flexible Content field
-  (`field_sections`) is therefore never "shared" between languages the way
-  `field_sections` was in Drupal — symmetry must be **enforced by the
-  editorial process**, not by storage
-- workflow — **verified for real, see `WORDPRESS-PROCESS.md` §7**: clicking
-  the `+` next to the target language's flag in the editor's *Languages*
-  panel creates the translation with the `sections` field
-  **already filled in identically** (Polylang's free default behavior,
-  no per-field sync setting required, no "copy the content" option to
-  check); only translate the text/media sub-fields of each layout
-  afterward — never rebuild the layout list by hand on the EN side,
-  nothing technically prevents it, this is an editorial discipline
-- this copy only happens **at creation time**: beyond that, the two
-  languages are independent posts (separate postmeta) — changing the
-  `sections` structure on FR afterward has no effect on EN, and vice
-  versa; if a real need for permanent per-field synchronization arises
-  (not just an initial copy), that's a Polylang Pro feature
-- document why: asymmetrically, each language derives its own layout
-  list → duplicated work, orphaned layouts on one side,
-  editorial desync. We don't do that.
-- test: duplicating a post FR→EN must offer translation of every
-  existing layout, never an empty structure to rebuild
-
-### b. ACF Flexible Content layouts (each mapped to a Twig component)
-- `hero` → hero organism
-- `text_media` (body, media, left/right position) → horizontal card
-- `cards_grid` (repeater sub-field or nested flexible content of cards)
-- `cta_banner`, `accordion`, `embed`
-- a `variant` sub-field (select, choices = same values as the
-  props comment of the matching Twig component, §3) on layouts
-  that have variants; the source of truth remains the Twig component —
-  mention in the README the trick to keep both in sync (generate
-  the ACF select's `choices` from a shared JSON file if the number of
-  variants drifts)
-
-### c. Twig templates = pure mapping
-The consuming template (e.g. `page.twig`) loops over `get_field('sections')`
-and does ONLY the layout → component mapping via `{% include %}`:
-
-```twig
-{% for section in fields.sections %}
-  {% if section.acf_fc_layout == 'hero' %}
-    {% include 'components/03-organisms/hero.twig' with section only %}
-  {% elseif section.acf_fc_layout == 'cta_banner' %}
-    {% include 'components/03-organisms/cta-banner.twig' with section only %}
-  {% endif %}
-{% endfor %}
-```
-
-Zero structural HTML tag in this mapping. If HTML shows up there, it means
-the Twig component is incomplete — fix the component.
-
-### d. Section layout / grid
-An ACF `section` layout with a `columns` sub-field (1/2/3, select) and a
-nested flexible content for its content; grids as Tailwind
-classes (`grid grid-cols-{{ columns }}`, via the mapping object from §5, no
-dynamic concatenation). Other layouts are only insertable INSIDE
-a `section` layout (`parent_layout` field in the ACF Flexible
-Content config, or by limiting available layouts at the nested field
-group level).
-
-### e. Editorial guardrails
-- min/max per layout: ACF Flexible Content natively lets you set a
-  min/max **per layout** (e.g. `hero`: min 0, max 1) — no need for a
-  custom validator like on the Drupal side
-- field labels and instructions in French
-- layout icons/previews configured (`Field Group > Flexible Content >
-  Layout > icon`)
-
-## 8. Multilingual — global config (Polylang)
-- languages FR (default) + EN, "directory" mode (`/fr/`, `/en/`) rather
-  than subdomains
-- detection: URL only — disable *"Detect browser
-  language"* in Polylang's settings
-- Polylang enabled on `post`, `page`, `attachment` (media — so alt
-  text is translatable) and on any custom post types
-- hardcoded strings in components' Twig (e.g. "Read
-  more"): `__('Lire la suite', 'tailwind')` exposed to Twig via a
-  `Timber::$twig_functions` or a custom Twig function, or registered
-  via *Polylang > String translation* for strings outside PHP/Twig
-  (theme settings, global ACF options)
-- permalinks: pretty permalinks required (Polylang prerequisite), aliases
-  and SEO metadata per language if an SEO plugin (Yoast, Rank Math) is
-  present
-
-## 9. Quality / CI
-- Prettier + `prettier-plugin-tailwindcss` (class ordering)
-- ESLint on `assets/scripts/**/*.js`
-- `composer lint` (Pint) and `composer test` (Pest) already scripted in
-  `composer.json` — wire them into CI rather than duplicating tooling
-- GitHub Actions job: `composer install`, `npm ci` (in the theme),
-  `composer lint`, `composer test`, a script validating the components'
-  props headers (§3) and the presence of their `README.md`,
-  `npm run build`, fail if the generated CSS exceeds 50 KB gzipped
-- regression test: a post with every layout, translated FR→EN via
-  the §7a workflow, renders the same structural DOM in both languages
-
-# Constraints
-- Bedrock, WordPress via `roots/wordpress`, PHP ≥ 8.4 (see `composer.json`),
-  Tailwind v4 (CSS-first config, no legacy `tailwind.config.js`), no
-  jQuery in the custom theme
-- `@apply` forbidden outside the `prose` block of `assets/styles/app.css`
-- Accessibility (RGAA): systematic focus-visible, contrasts checked on
-  the tokens, ARIA justified
-- No rendering logic in `functions.php`/`src/Site.php` (mapping in
-  Twig; PHP only for actual data transformation — e.g. in
-  `add_to_context()`)
-- ACF field groups versioned in git — **in PHP**
-  (`acf_add_local_field_group()` on the `acf/init` hook, e.g.
-  `inc/acf-fields.php`), not via the UI + Local JSON export (`acf-json/`):
-  building nested layouts by mouse (a full page builder = dozens of
-  fields) is slow and fragile to redo on every change, whereas PHP
-  stays just as versioned, faster to write and easier to review in a
-  diff. Avoid the `url`/`page_link` field type for an internal CTA with a
-  free-form URL: `url` rejects any relative path (strict validation),
-  `page_link` forces picking an existing page — prefer
-  `text` with an explicit instruction. Polylang settings (languages,
-  per-field sync settings) documented in the architecture README for
-  lack of a reliable native export
-
-# Deliverables
-Proceed step by step: pipeline (check what exists, extend if needed),
-tokens, components one by one with a real usage example, then ACF layouts
-and multilingual config. End with an architecture README covering:
-- when to create a Twig component vs. a template in `views/templates/`
-- the cross-project token strategy
-- Polylang vs. WPML: stay on Polylang as long as the free field
-  synchronization is enough; switch criterion to WPML/Polylang Pro =
-  a real need for assisted machine translation or a multi-role
-  validation workflow
-
----
-
 # 🇫🇷 Contexte
 Tu interviens sur ce projet WordPress géré avec [Bedrock](https://roots.io/bedrock/)
 (racine du repo = racine Bedrock : `composer.json`, `config/`, `web/wp` pour le
@@ -529,3 +263,269 @@ config multilingue. Termine par un README d'architecture couvrant :
   champs gratuite suffit ; critère de bascule vers WPML/Polylang Pro =
   besoin réel de traduction automatique assistée ou de workflow de
   validation multi-rôles
+
+---
+
+# 🇬🇧 Context
+You're working on this WordPress project managed with [Bedrock](https://roots.io/bedrock/)
+(repo root = Bedrock root: `composer.json`, `config/`, `web/wp` for
+WordPress core, `web/app` for themes/plugins/uploads). The custom theme
+`web/app/themes/custom/tailwind` already exists: Timber v2 (Twig templates in
+`views/`), Tailwind CSS v4 compiled by Vite with HMR already working (see
+[`theme.md`](../theme.md) for the pipeline detail). Goal:
+industrialize the front end with reusable Twig components, consumed by
+an editorial ACF Flexible Content page builder, on a multilingual FR/EN site
+via Polylang. Agency purpose: reduce Twig duplication, make multi-project
+Bedrock+Timber delivery more reliable, with Tailwind tokens (`@theme`) being
+the only customization point between projects built on this same foundation.
+
+## Table of contents
+
+- [Mission](#mission)
+  - [1. Build pipeline (already in place, to extend)](#1-build-pipeline-already-in-place-to-extend)
+  - [2. Design tokens](#2-design-tokens)
+  - [3. Twig component structure](#3-twig-component-structure)
+  - [4. Starting components (typed props in a comment + slots via `{% block %}`)](#4-starting-components-typed-props-in-a-comment-slots-via-block-)
+  - [5. Variant pattern in Twig](#5-variant-pattern-in-twig)
+  - [6. Timber / WordPress integration](#6-timber-wordpress-integration)
+  - [7. Page builder with ACF Flexible Content (multilingual)](#7-page-builder-with-acf-flexible-content-multilingual)
+  - [8. Multilingual — global config (Polylang)](#8-multilingual-global-config-polylang)
+  - [9. Quality / CI](#9-quality-ci)
+- [Constraints](#constraints)
+- [Deliverables](#deliverables)
+
+# Mission
+
+## 1. Build pipeline (already in place, to extend)
+The Vite + Tailwind v4 pipeline already exists and is documented in
+`theme.md`: single entry point `assets/styles/app.css`
+(`@import "tailwindcss"`), explicit `@source`, dev/prod switch in
+`inc/vite.php`, HMR (`phpTwigReload` plugin + polling for Colima/virtiofs).
+Only to extend:
+- if the components (mission §3) live outside `views/`, add the matching
+  `@source` line in `assets/styles/app.css` (otherwise the existing
+  `@source "../../views/**/*.twig"` is already enough)
+- `npm run lint:components` script (validates the props headers, see
+  §3) and `npm run prettier:check` (Prettier + `prettier-plugin-tailwindcss`
+  for class ordering), ESLint on `assets/scripts/**/*.js`
+
+## 2. Design tokens
+`@theme` block in `assets/styles/app.css` (to create — currently absent,
+the theme uses Tailwind's default colors): semantic colors
+(`--color-primary/-hover`, `--color-surface/-alt`, `--color-text/-muted`,
+`--color-border`, etc.), spacing, fonts, radius. No arbitrary
+`[...]` value in components unless justified in a comment. The tokens
+are the only customization point between the agency's projects built on this
+theme.
+
+## 3. Twig component structure
+Under `views/components/` (to create, distinct from the already-existing
+`views/templates/` and `views/partials/`): `01-atoms/`, `02-molecules/`,
+`03-organisms/`. Each component: one `*.twig`, one `README.md` with a real
+usage example. Timber/Twig has no native equivalent to Drupal's Single
+Directory Components props schema (no automatic type validation):
+document the expected props in a Twig comment at the top of the file, e.g.
+
+```twig
+{#
+  Props: variant (primary|secondary|ghost, default: primary), size (sm|md|lg, default: md),
+         url (optional — renders <a> instead of <button>), disabled (bool)
+#}
+```
+
+and in the component's `README.md` — this is a team convention, not an
+automated constraint (see §9 for an in-house linter that at least checks the
+presence of this block). Every component WITHOUT slots must be renderable
+in isolation via `{% include 'components/01-atoms/button/button.twig' with
+{...} only %}` — always with `only`, so it never implicitly depends
+on the page's context (`post`, `site`, `menu`…) or WordPress entities.
+
+**Exception confirmed in practice**: for a component with slots (`{% block
+%}`, consumed via `{% embed %}` — see §4 `card`), NEVER put `only`
+on the `{% embed %}` tag itself. The content of the blocks defined there
+runs in the calling page's scope — that's what lets it
+use `post.title`, `site.theme.link`, etc. to compose the actual
+content. `only` on the embed cuts off that access for the whole block, including
+nested `{% include ... only %}` calls inside the slots, which then
+receive empty variables with no Twig error (silent, hence dangerous — only
+caught by actually rendering the page). Each `{% include %}` nested
+inside a slot keeps its own `only`: it's the one that isolates the
+leaf component, not the enclosing embed.
+
+## 4. Starting components (typed props in a comment + slots via `{% block %}`)
+- `button`: primary/secondary/ghost variants, sm/md/lg sizes, `url` prop
+  (renders `<a>` or `<button>`), `disabled` prop
+- `card`: image/title/content/footer slots, horizontal variant
+- `heading`: `level` prop (1-6, semantic) decoupled from `size` prop (visual)
+- `badge`, `tag`, `icon` (SVG sprite in `assets/images/sprite.svg`)
+- `hero` (organism): title, subtitle, media, cta
+
+## 5. Variant pattern in Twig
+Mapping via a Twig object, never dynamic class concatenation (Tailwind's
+detector wouldn't see `bg-{{ color }}`):
+
+```twig
+{% set variants = {
+  primary: 'bg-primary text-white hover:bg-primary-hover',
+  secondary: 'bg-transparent border border-primary text-primary',
+} %}
+<button class="inline-flex items-center rounded-md {{ variants[variant|default('primary')] }} {{ sizes[size|default('md')] }}">
+```
+
+## 6. Timber / WordPress integration
+- consumption via `{% include 'components/01-atoms/button.twig' with {...} only %}`
+- the existing template hierarchy (`theme.md`) stays the same:
+  `views/templates/single-{post_type}.twig`, `page-{slug}.twig`, etc.
+- WYSIWYG content (`post.content` or ACF `wysiwyg` field): `prose` class
+  (`@tailwindcss/typography`, already in place in `assets/styles/app.css`) —
+  the only place where `@apply` is tolerated if an adjustment is needed (in
+  `assets/styles/app.css`, never in a component)
+- Preflight: Tailwind v4 enables it by default via `@import "tailwindcss"`;
+  document in the architecture README (§ Deliverables) the restyling
+  strategy for tags injected by WordPress plugins (shortcodes,
+  third-party widgets) that don't have a dedicated component
+
+## 7. Page builder with ACF Flexible Content (multilingual)
+Plugins via Composer: `advanced-custom-fields-pro` (or `secure-custom-fields`
+if budget-constrained — flexible content is available there since it went
+free; it's also the only option installable via Composer without a
+license key, since ACF Pro is never distributed on the wordpress.org SVN),
+`polylang` (`polylang-pro` if advanced field synchronization is needed).
+Real package name: **`wp-plugin/<slug>`**, not `wpackagist-plugin/<slug>` —
+since Bedrock 1.30, [WP Packages](https://roots.io/wp-composer-is-now-wp-packages/)
+(`repo.wp-packages.org`, see `composer.json`) is the **official**
+package source replacing WPackagist, not a convention specific to this
+repo (confirmed by `composer show wp-plugin/polylang --all`).
+
+### a. Translation architecture — SYMMETRIC, non-negotiable
+- each Polylang translation of a post is a distinct WordPress post (linked
+  via `pll_get_post_translations`): the ACF Flexible Content field
+  (`field_sections`) is therefore never "shared" between languages the way
+  `field_sections` was in Drupal — symmetry must be **enforced by the
+  editorial process**, not by storage
+- workflow — **verified for real, see `WORDPRESS-PROCESS.md` §7**: clicking
+  the `+` next to the target language's flag in the editor's *Languages*
+  panel creates the translation with the `sections` field
+  **already filled in identically** (Polylang's free default behavior,
+  no per-field sync setting required, no "copy the content" option to
+  check); only translate the text/media sub-fields of each layout
+  afterward — never rebuild the layout list by hand on the EN side,
+  nothing technically prevents it, this is an editorial discipline
+- this copy only happens **at creation time**: beyond that, the two
+  languages are independent posts (separate postmeta) — changing the
+  `sections` structure on FR afterward has no effect on EN, and vice
+  versa; if a real need for permanent per-field synchronization arises
+  (not just an initial copy), that's a Polylang Pro feature
+- document why: asymmetrically, each language derives its own layout
+  list → duplicated work, orphaned layouts on one side,
+  editorial desync. We don't do that.
+- test: duplicating a post FR→EN must offer translation of every
+  existing layout, never an empty structure to rebuild
+
+### b. ACF Flexible Content layouts (each mapped to a Twig component)
+- `hero` → hero organism
+- `text_media` (body, media, left/right position) → horizontal card
+- `cards_grid` (repeater sub-field or nested flexible content of cards)
+- `cta_banner`, `accordion`, `embed`
+- a `variant` sub-field (select, choices = same values as the
+  props comment of the matching Twig component, §3) on layouts
+  that have variants; the source of truth remains the Twig component —
+  mention in the README the trick to keep both in sync (generate
+  the ACF select's `choices` from a shared JSON file if the number of
+  variants drifts)
+
+### c. Twig templates = pure mapping
+The consuming template (e.g. `page.twig`) loops over `get_field('sections')`
+and does ONLY the layout → component mapping via `{% include %}`:
+
+```twig
+{% for section in fields.sections %}
+  {% if section.acf_fc_layout == 'hero' %}
+    {% include 'components/03-organisms/hero.twig' with section only %}
+  {% elseif section.acf_fc_layout == 'cta_banner' %}
+    {% include 'components/03-organisms/cta-banner.twig' with section only %}
+  {% endif %}
+{% endfor %}
+```
+
+Zero structural HTML tag in this mapping. If HTML shows up there, it means
+the Twig component is incomplete — fix the component.
+
+### d. Section layout / grid
+An ACF `section` layout with a `columns` sub-field (1/2/3, select) and a
+nested flexible content for its content; grids as Tailwind
+classes (`grid grid-cols-{{ columns }}`, via the mapping object from §5, no
+dynamic concatenation). Other layouts are only insertable INSIDE
+a `section` layout (`parent_layout` field in the ACF Flexible
+Content config, or by limiting available layouts at the nested field
+group level).
+
+### e. Editorial guardrails
+- min/max per layout: ACF Flexible Content natively lets you set a
+  min/max **per layout** (e.g. `hero`: min 0, max 1) — no need for a
+  custom validator like on the Drupal side
+- field labels and instructions in French
+- layout icons/previews configured (`Field Group > Flexible Content >
+  Layout > icon`)
+
+## 8. Multilingual — global config (Polylang)
+- languages FR (default) + EN, "directory" mode (`/fr/`, `/en/`) rather
+  than subdomains
+- detection: URL only — disable *"Detect browser
+  language"* in Polylang's settings
+- Polylang enabled on `post`, `page`, `attachment` (media — so alt
+  text is translatable) and on any custom post types
+- hardcoded strings in components' Twig (e.g. "Read
+  more"): `__('Lire la suite', 'tailwind')` exposed to Twig via a
+  `Timber::$twig_functions` or a custom Twig function, or registered
+  via *Polylang > String translation* for strings outside PHP/Twig
+  (theme settings, global ACF options)
+- permalinks: pretty permalinks required (Polylang prerequisite), aliases
+  and SEO metadata per language if an SEO plugin (Yoast, Rank Math) is
+  present
+
+## 9. Quality / CI
+- Prettier + `prettier-plugin-tailwindcss` (class ordering)
+- ESLint on `assets/scripts/**/*.js`
+- `composer lint` (Pint) and `composer test` (Pest) already scripted in
+  `composer.json` — wire them into CI rather than duplicating tooling
+- GitHub Actions job: `composer install`, `npm ci` (in the theme),
+  `composer lint`, `composer test`, a script validating the components'
+  props headers (§3) and the presence of their `README.md`,
+  `npm run build`, fail if the generated CSS exceeds 50 KB gzipped
+- regression test: a post with every layout, translated FR→EN via
+  the §7a workflow, renders the same structural DOM in both languages
+
+# Constraints
+- Bedrock, WordPress via `roots/wordpress`, PHP ≥ 8.4 (see `composer.json`),
+  Tailwind v4 (CSS-first config, no legacy `tailwind.config.js`), no
+  jQuery in the custom theme
+- `@apply` forbidden outside the `prose` block of `assets/styles/app.css`
+- Accessibility (RGAA): systematic focus-visible, contrasts checked on
+  the tokens, ARIA justified
+- No rendering logic in `functions.php`/`src/Site.php` (mapping in
+  Twig; PHP only for actual data transformation — e.g. in
+  `add_to_context()`)
+- ACF field groups versioned in git — **in PHP**
+  (`acf_add_local_field_group()` on the `acf/init` hook, e.g.
+  `inc/acf-fields.php`), not via the UI + Local JSON export (`acf-json/`):
+  building nested layouts by mouse (a full page builder = dozens of
+  fields) is slow and fragile to redo on every change, whereas PHP
+  stays just as versioned, faster to write and easier to review in a
+  diff. Avoid the `url`/`page_link` field type for an internal CTA with a
+  free-form URL: `url` rejects any relative path (strict validation),
+  `page_link` forces picking an existing page — prefer
+  `text` with an explicit instruction. Polylang settings (languages,
+  per-field sync settings) documented in the architecture README for
+  lack of a reliable native export
+
+# Deliverables
+Proceed step by step: pipeline (check what exists, extend if needed),
+tokens, components one by one with a real usage example, then ACF layouts
+and multilingual config. End with an architecture README covering:
+- when to create a Twig component vs. a template in `views/templates/`
+- the cross-project token strategy
+- Polylang vs. WPML: stay on Polylang as long as the free field
+  synchronization is enough; switch criterion to WPML/Polylang Pro =
+  a real need for assisted machine translation or a multi-role
+  validation workflow

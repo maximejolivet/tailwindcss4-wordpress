@@ -1,354 +1,3 @@
-# 🇬🇧 Custom theme (`web/app/themes/custom/tailwind`)
-
-WordPress theme built with [Timber v2](https://timber.github.io/docs/v2/) (Twig templates) and [Tailwind CSS 4](https://tailwindcss.com/) compiled by [Vite](https://vitejs.dev/), with an HMR dev server.
-
-## Table of contents
-
-- [Stack](#stack)
-- [Directory tree](#directory-tree)
-- [Twig components (`views/components/`)](#twig-components-viewscomponents)
-- [Page builder (ACF Flexible Content)](#page-builder-acf-flexible-content)
-- [Multilingual (Polylang)](#multilingual-polylang)
-- [Timber / Twig](#timber-twig)
-- [Assets (Tailwind CSS 4 + Vite)](#assets-tailwind-css-4-vite)
-- [HMR: why CSS/Twig weren't reloading (and the fix)](#hmr-why-csstwig-werent-reloading-and-the-fix)
-- [Commands](#commands)
-- [PHP autoload](#php-autoload)
-- [See also](#see-also)
-
-## Stack
-
-| Piece | Role |
-|---|---|
-| [Timber v2](https://timber.github.io/docs/v2/) | Separates WordPress logic (PHP) from rendering (Twig templates in `views/`) |
-| [Twig](https://twig.symfony.com/) | Template engine used by Timber |
-| [Tailwind CSS 4](https://tailwindcss.com/) | Utility classes, CSS-first config (no `tailwind.config.js`) |
-| [Vite](https://vitejs.dev/) | Asset bundler (`assets/scripts/app.js` + `assets/styles/app.css`), production build and dev server with HMR |
-
-The theme is installed locally (not via Composer/WP Packages like `twentytwentyfive`): it's a folder versioned directly in the repo.
-
-## Directory tree
-
-```
-web/app/themes/custom/tailwind/
-├── style.css                  # Required WordPress header (metadata only, no styles)
-├── functions.php              # Bootstrap: Timber::init(), instantiates Site, loads inc/vite.php and inc/acf-fields.php
-├── index.php                  # Generic template (archives, blog)
-├── front-page.php             # Static homepage
-├── page.php                   # Pages
-├── single.php                 # Posts
-├── 404.php                    # Not found page
-├── src/
-│   └── Site.php               # App\Theme\Site extends Timber\Site: theme supports, menus, Twig context
-├── inc/
-│   ├── vite.php                # Dev (HMR) / prod (manifest) asset switch
-│   └── acf-fields.php          # "sections" Flexible Content field (ACF/SCF page builder), see §Components
-├── views/
-│   ├── layouts/base.twig      # Base HTML layout (head, header, footer, wp_head/wp_footer)
-│   ├── partials/              # head.twig, menu.twig (recursive), footer.twig
-│   ├── components/            # Reusable Twig components (atoms/molecules/organisms), see §Components
-│   └── templates/             # index.twig, front-page.twig, page.twig, single.twig, 404.twig
-├── assets/
-│   ├── styles/app.css         # `@import "tailwindcss"` + `@theme` (tokens) + `@source` + `@plugin` typography
-│   ├── scripts/app.js         # JS entry point (vanilla), imports app.css
-│   ├── images/sprite.svg      # SVG sprite consumed by the `icon` component
-│   └── fonts/                 # Empty (`.gitkeep`), use as needed
-├── package.json
-└── vite.config.js
-```
-
-`dist/` (production build) and `node_modules/` are generated, not versioned (see the root `.gitignore`).
-
-## Twig components (`views/components/`)
-
-Reusable component library, organized into `01-atoms/`,
-`02-molecules/`, `03-organisms/` (one folder per component: `*.twig` +
-`README.md` with a real usage example):
-
-| Component | Type | Role |
-|---|---|---|
-| `button` | atom | `<a>`/`<button>`, primary/secondary/ghost variants, sm/md/lg sizes |
-| `heading` | atom | semantic level (`<h1>`-`<h6>`) decoupled from visual size |
-| `badge` | atom | static indicator (neutral/success/warning/danger/info variants) |
-| `tag` | atom | optionally removable chip (vanilla JS, `assets/scripts/app.js`) |
-| `icon` | atom | SVG sprite (`assets/images/sprite.svg`), isolated (`sprite_url` as an explicit prop) |
-| `card` | molecule | image/title/content/footer slots, vertical/horizontal variant (+ `reverse`) |
-| `accordion-item` | molecule | native `<details>/<summary>`, no JS |
-| `hero` | organism | banner (title/subtitle/media/CTA), composes `heading` + `button` |
-| `cards-grid` | organism | 2/3/4-column grid of vertical `card` |
-| `accordion` | organism | `divide-y` wrapper around `accordion-item` |
-| `embed` | organism | raw third-party content (iframe, social embed) |
-
-Convention (documented in each component, see also
-[`prompts/WORDPRESS-MISSION-BRIEF.md`](prompts/WORDPRESS-MISSION-BRIEF.md) §3):
-- props documented in a Twig comment at the top of the file (no
-  automatically validated schema, Twig has no equivalent to Drupal's
-  Single Directory Components)
-- component without slots → `{% include '...' with {...} only %}`
-  (isolated, never an implicit dependency on `post`/`site`)
-- component with slots → `{% embed '...' %}` **without** `only` on the
-  `embed` itself (the content of `{% block %}` must keep access to the
-  calling page's scope); each `{% include %}` *inside* a slot keeps its
-  own `only`
-
-## Page builder (ACF Flexible Content)
-
-`inc/acf-fields.php` registers in PHP (`acf_add_local_field_group()`, not
-via the UI + Local JSON export — faster and more reliable to evolve) a
-`sections` Flexible Content field on the `page` post type:
-- top level: `hero` (max 1) and `section` layouts only
-- `section` contains `columns` (1/2/3) and a nested flexible content
-  `content` with `text_media`, `cards_grid`, `cta_banner`, `accordion`,
-  `embed`
-
-`views/templates/page.twig` does the pure ACF layout → Twig component
-mapping (zero structural HTML outside the `section` grid); see
-[`prompts/WORDPRESS-MISSION-BRIEF.md`](prompts/WORDPRESS-MISSION-BRIEF.md) §7 for the full detail
-and [`prompts/WORDPRESS-PROCESS.md`](prompts/WORDPRESS-PROCESS.md) for
-the real bugs hit while building it.
-
-## Multilingual (Polylang)
-
-FR (default) + EN, symmetric `/fr/` and `/en/` prefixes on both
-languages, URL-only detection. See
-[`prompts/WORDPRESS-MISSION-BRIEF.md`](prompts/WORDPRESS-MISSION-BRIEF.md) §8 for the config and the
-translation workflow (copying the `sections` structure when a translation
-is created is Polylang's native free behavior, no need for Polylang Pro).
-
-## Timber / Twig
-
-### Bootstrap (`functions.php`)
-
-```php
-namespace App\Theme;
-
-use Timber\Timber;
-
-Timber::init();
-
-new Site();          // src/Site.php — enables theme supports, menus, context
-require __DIR__ . '/inc/vite.php';
-require __DIR__ . '/inc/acf-fields.php'; // "sections" Flexible Content field (ACF/SCF)
-```
-
-Timber looks for `.twig` files in the `views/` folder by default (`Timber::$dirname`), so paths passed to `Timber::render()` are relative to `views/` (e.g. `templates/page.twig`).
-
-### `App\Theme\Site` (`src/Site.php`)
-
-Extends `Timber\Site`:
-- `theme_supports()` (`after_setup_theme` hook): `title-tag`, `post-thumbnails`, `automatic-feed-links`, `editor-styles`, `html5`, and registers the `primary` menu.
-- `add_to_context()` (`timber/context` filter): adds `site` (the `Site` instance, giving access to `site.name`, `site.url`, `site.charset`, `site.language_attributes`…) and `menu` (`Timber::get_menu('primary')`) to the context available in every Twig template.
-
-To add global data to all templates (e.g. an ACF setting, an option), add it in `add_to_context()`.
-
-To add a custom post type / taxonomy, fill in `register_post_types()` / `register_taxonomies()` (stubs present in the class, hooked on `init`).
-
-### Template hierarchy
-
-Each PHP file at the theme root follows the standard [WordPress template hierarchy](https://developer.wordpress.org/themes/basics/template-hierarchy/) and delegates rendering to a `.twig` file in `views/templates/`:
-
-| PHP file | Context | Twig template rendered |
-|---|---|---|
-| `index.php` | Archives, blog | `templates/index.twig` (+ `templates/front-page.twig` with priority if `is_front_page()`) |
-| `front-page.php` | Static homepage (*Settings > Reading* setting) | `templates/front-page.twig` |
-| `page.php` | Page (`page` post_type) | `templates/page-{slug}.twig` if present, otherwise `templates/page.twig` |
-| `single.php` | Post (or any post type) | `templates/single-{post_type}.twig` if present, otherwise `templates/single.twig` |
-| `404.php` | Not found | `templates/404.twig` |
-
-**Adding a dedicated template**: for example for a "Contact" page (slug `contact`), create `views/templates/page-contact.twig` (which can do `{% extends 'layouts/base.twig' %}`) — `page.php` detects it automatically, no PHP change needed. Same logic for an `event` post type → `views/templates/single-event.twig`.
-
-### Layout and partials
-
-- `views/layouts/base.twig`: full HTML structure (`<html>`, `<head>` via `partials/head.twig`, `<header>` with logo + `partials/menu.twig`, `<main>` with the `{% block content %}`, `partials/footer.twig`, `wp_footer()`). Each template in `views/templates/` does `{% extends 'layouts/base.twig' %}` and fills `{% block content %}`.
-- `partials/head.twig`: `<meta charset>`, viewport, `wp_head()`.
-- `partials/menu.twig`: recursive rendering of a Timber menu (`item.children`), used for the `primary` menu.
-- `partials/footer.twig`: copyright.
-
-### Context available in Twig templates
-
-In addition to what `Timber::context()` adds by default (`post`, `posts`, `body_class`, etc. depending on the PHP file), every template has access to:
-- `site` — `Site` object (`site.name`, `site.url`, `site.charset`, `site.language_attributes`, `site.theme`…)
-- `menu` — items of the `primary` navigation menu (assigned in *Appearance > Menus*)
-
-## Assets (Tailwind CSS 4 + Vite)
-
-### CSS (`assets/styles/app.css`)
-
-```css
-@import "tailwindcss";
-@plugin "@tailwindcss/typography";
-
-@source "../../views/**/*.twig";
-@source "../../**/*.php";
-
-@theme {
-    --color-primary: oklch(0.55 0.22 265);
-    --color-primary-hover: oklch(0.47 0.22 265);
-    /* ... surface/text/border/success/warning/danger/info, radius, spacing */
-}
-```
-
-Tailwind CSS 4 uses a **CSS-first** configuration: no `tailwind.config.js`. The `@source` directives explicitly tell it where to scan for used classes (by default Tailwind only looks from the Vite project root while respecting `.gitignore`, which would probably be enough, but this makes it explicit) — `views/**/*.twig` also covers `views/components/`. The `@theme` block defines semantic tokens (colors, radius, spacing): the **only customization point** between projects based on this theme, no arbitrary `[...]` values in components unless justified in a comment. The `@tailwindcss/typography` plugin provides the `prose`/`prose-neutral` classes used for WYSIWYG content (post content, ACF wysiwyg).
-
-IDE diagnostics like *"Unknown at rule @plugin/@source/@theme"* are normal: the CSS language server doesn't know these Tailwind v4 at-rules yet, it's not a functional error.
-
-### JS (`assets/scripts/app.js`)
-
-Single entry point, imports the CSS and handles vanilla interactions
-(no framework):
-
-```js
-import '../styles/app.css';
-
-document.addEventListener('click', (event) => {
-    const removeButton = event.target.closest('[data-tag-remove]');
-    if (!removeButton) return;
-    removeButton.closest('[data-tag]')?.remove();
-});
-```
-
-The delegated listener above handles the remove button of the `tag`
-component (`views/components/01-atoms/tag/`) — a single global listener
-rather than a per-component JS dependency. To add JS, write it in this
-file (or import it from another module) — Vite's entry point
-(`vite.config.js` → `build.rollupOptions.input`) is a single file
-(`assets/scripts/app.js`).
-
-### Production build (`make vite-build`)
-
-```bash
-make vite-build
-# → npm --prefix web/app/themes/custom/tailwind run build
-```
-
-Generates `dist/assets/*.{js,css}` (hashed files) and `dist/.vite/manifest.json`. This is the manifest that `inc/vite.php` reads to enqueue the right files in production.
-
-### Dev server / HMR (`make vite-dev`)
-
-```bash
-make vite-dev
-# → npm --prefix web/app/themes/custom/tailwind run dev
-```
-
-Starts Vite on `https://tailwind-wordpress.localhost:3009/` (port exposed directly by the `node` service, outside Traefik):
-- Reuses Traefik's mkcert certificates (`docker/traefik/certs/tailwind-wordpress.localhost{,-key}.pem`) to serve over HTTPS with an already-trusted certificate — no browser warning.
-- `hmr: { host, protocol: 'wss' }`: the HMR client connects over a secure WebSocket on this same host/port.
-
-### Dev / prod switch (`inc/vite.php`)
-
-On every page load (`wp_enqueue_scripts`), the theme detects whether the Vite server is running:
-
-```php
-$connection = @fsockopen(VITE_INTERNAL_HOST, VITE_DEV_PORT, ...); // 'node', 3009
-```
-
-The test uses the internal Docker service name `node:3009` (only resolvable from the `php` container, via the Compose network), not `tailwind-wordpress.localhost` (which only resolves on the host/browser side). This is an important distinction if you modify this file:
-- **Dev server detection** (server-side, PHP → Node): `node:3009`.
-- **Script URLs served to the browser**: `https://tailwind-wordpress.localhost:3009` (`VITE_DEV_HOST`).
-
-If the dev server responds (and `WP_ENV=development`):
-- enqueues `https://tailwind-wordpress.localhost:3009/@vite/client` (HMR client)
-- enqueues `https://tailwind-wordpress.localhost:3009/assets/scripts/app.js` (uncompiled source, transformed on the fly)
-
-Otherwise, it reads `dist/.vite/manifest.json` and enqueues the built files (`dist/assets/app-XXXX.js`, `dist/assets/app-XXXX.css`).
-
-In both cases, a `script_loader_tag` filter adds `type="module"` (WordPress doesn't natively enqueue ES modules without it).
-
-### `vite.config.js` — details
-
-```js
-export default defineConfig(({ command }) => ({
-    base: command === 'build' ? '/app/themes/custom/tailwind/dist/' : '/',
-    plugins: [tailwindcss(), phpTwigReload()],
-    ...
-}));
-```
-
-- **Conditional `base`**: in `build`, internal URLs generated by Vite (e.g. `url()` in CSS) must be prefixed with the theme's real public path (`/app/themes/custom/tailwind/dist/` — the `/app` comes from `CONTENT_DIR` defined by Bedrock in `config/application.php`). In `serve` (dev), `base: '/'` is kept: the dev server serves files from the theme root, so `/assets/scripts/app.js` correctly matches `<theme>/assets/scripts/app.js`. Mixing the two breaks either the dev URLs or the prod URLs.
-- **`server.https`**: reads the mkcert certificates if they exist, otherwise lets Vite generate a self-signed certificate (`https: true`).
-- **`server.watch.usePolling: true`**: see the HMR section below — needed under Colima/virtiofs.
-- **`phpTwigReload()` plugin**: see the HMR section below.
-
-## HMR: why CSS/Twig weren't reloading (and the fix)
-
-Two distinct problems, both fixed in `vite.config.js`:
-
-### 1. `.twig`/`.php` files don't trigger any reload by default
-
-Vite only does HMR for files that are part of its **module graph** (imported JS/CSS). A `.twig` file rendered server-side is never part of that: editing a template has, by default, *no effect at all* on the browser side, even with the dev server running.
-
-**Fix**: a minimal Vite plugin (`phpTwigReload()`, in `vite.config.js`) listens for changes on `**/*.twig` and `**/*.php` via `server.watcher` and triggers a full page reload:
-
-```js
-server.watcher.on('change', (file) => {
-    if (/\.(twig|php)$/.test(file)) {
-        server.ws.send({ type: 'full-reload' });
-    }
-});
-```
-
-### 2. The file watcher saw no changes coming from macOS
-
-More fundamentally: under [Colima](https://github.com/abiosoft/colima) with the `virtiofs` mount type (see `docker/README.md`), `inotify` events triggered by a file change made from macOS (editor, IDE) don't reliably propagate into the Linux container. As a result, neither Vite's watcher nor the `@tailwindcss/vite` plugin's watcher (which scans `@source` files to regenerate CSS) detected anything — so the CSS also wasn't regenerated when a Tailwind class was added/removed in a `.twig` file.
-
-**Fix**: force polling instead of relying on native filesystem events:
-
-```js
-server: {
-    watch: {
-        usePolling: true,
-        interval: 300, // ms
-    },
-},
-```
-
-The Tailwind plugin shares the same `server.watcher` as Vite, so this setting fixes both symptoms (page not reloading, CSS not regenerating) at once. Trade-off: polling uses a bit more CPU than a native watcher — acceptable for local development.
-
-### Verifying HMR works
-
-1. `make vite-dev`
-2. Open https://tailwind-wordpress.localhost/ (the `<script type="module" src="https://tailwind-wordpress.localhost:3009/...">` should appear in the page — otherwise the dev server isn't detected, see the dev/prod switch section above)
-3. Change a Tailwind class in a `.twig` file → the page reloads automatically and the style is up to date.
-
-## Commands
-
-| Command | Effect |
-|---|---|
-| `make vite-install` | `npm install` in the theme (once, or after changing `package.json`) |
-| `make vite-dev` | Starts the Vite dev server (HMR) at `https://tailwind-wordpress.localhost:3009/` |
-| `make vite-build` | Production build (`dist/`) |
-| `make npm ARGS="..."` | Arbitrary npm command in the theme folder, e.g. `make npm ARGS="run build"` |
-| `make wp ARGS="theme activate custom/tailwind"` | Activates the theme |
-
-The dev server runs in the `node` Docker service (`command: tail -f /dev/null`, so `make vite-dev` runs it via `docker compose exec`) — it doesn't start on its own with `make start` and must be started manually every dev session.
-
-## PHP autoload
-
-The `App\Theme\Site` class is loaded via the PSR-4 mapping in the **root** `composer.json` of the repo (not a separate `composer.json` in the theme):
-
-```json
-"autoload": {
-    "psr-4": {
-        "App\\Theme\\": "web/app/themes/custom/tailwind/src/"
-    }
-}
-```
-
-After adding a new class in `src/`, regenerate the autoloader if needed:
-
-```bash
-make shell
-composer dump-autoload
-```
-
-## See also
-
-- [`prompts/WORDPRESS-MISSION-BRIEF.md`](prompts/WORDPRESS-MISSION-BRIEF.md) — full mission (components, page builder, multilingual)
-- [`prompts/WORDPRESS-PROCESS.md`](prompts/WORDPRESS-PROCESS.md) — real execution journal (bugs found by testing, not by re-reading the code)
-- [`DEPLOY.md`](DEPLOY.md) — o2switch deployment (manual and CI GitHub Actions)
-
----
-
 # 🇫🇷 Thème custom (`web/app/themes/custom/tailwind`)
 
 Thème WordPress construit avec [Timber v2](https://timber.github.io/docs/v2/) (templates Twig) et [Tailwind CSS 4](https://tailwindcss.com/) compilé par [Vite](https://vitejs.dev/), avec un serveur de développement HMR.
@@ -698,3 +347,354 @@ composer dump-autoload
 - [`prompts/WORDPRESS-MISSION-BRIEF.md`](prompts/WORDPRESS-MISSION-BRIEF.md) — mission complète (composants, page builder, multilingue)
 - [`prompts/WORDPRESS-PROCESS.md`](prompts/WORDPRESS-PROCESS.md) — journal réel d'exécution (bugs trouvés en testant, pas en relisant le code)
 - [`DEPLOY.md`](DEPLOY.md) — déploiement o2switch (manuel et CI GitHub Actions)
+
+---
+
+# 🇬🇧 Custom theme (`web/app/themes/custom/tailwind`)
+
+WordPress theme built with [Timber v2](https://timber.github.io/docs/v2/) (Twig templates) and [Tailwind CSS 4](https://tailwindcss.com/) compiled by [Vite](https://vitejs.dev/), with an HMR dev server.
+
+## Table of contents
+
+- [Stack](#stack)
+- [Directory tree](#directory-tree)
+- [Twig components (`views/components/`)](#twig-components-viewscomponents)
+- [Page builder (ACF Flexible Content)](#page-builder-acf-flexible-content)
+- [Multilingual (Polylang)](#multilingual-polylang)
+- [Timber / Twig](#timber-twig)
+- [Assets (Tailwind CSS 4 + Vite)](#assets-tailwind-css-4-vite)
+- [HMR: why CSS/Twig weren't reloading (and the fix)](#hmr-why-csstwig-werent-reloading-and-the-fix)
+- [Commands](#commands)
+- [PHP autoload](#php-autoload)
+- [See also](#see-also)
+
+## Stack
+
+| Piece | Role |
+|---|---|
+| [Timber v2](https://timber.github.io/docs/v2/) | Separates WordPress logic (PHP) from rendering (Twig templates in `views/`) |
+| [Twig](https://twig.symfony.com/) | Template engine used by Timber |
+| [Tailwind CSS 4](https://tailwindcss.com/) | Utility classes, CSS-first config (no `tailwind.config.js`) |
+| [Vite](https://vitejs.dev/) | Asset bundler (`assets/scripts/app.js` + `assets/styles/app.css`), production build and dev server with HMR |
+
+The theme is installed locally (not via Composer/WP Packages like `twentytwentyfive`): it's a folder versioned directly in the repo.
+
+## Directory tree
+
+```
+web/app/themes/custom/tailwind/
+├── style.css                  # Required WordPress header (metadata only, no styles)
+├── functions.php              # Bootstrap: Timber::init(), instantiates Site, loads inc/vite.php and inc/acf-fields.php
+├── index.php                  # Generic template (archives, blog)
+├── front-page.php             # Static homepage
+├── page.php                   # Pages
+├── single.php                 # Posts
+├── 404.php                    # Not found page
+├── src/
+│   └── Site.php               # App\Theme\Site extends Timber\Site: theme supports, menus, Twig context
+├── inc/
+│   ├── vite.php                # Dev (HMR) / prod (manifest) asset switch
+│   └── acf-fields.php          # "sections" Flexible Content field (ACF/SCF page builder), see §Components
+├── views/
+│   ├── layouts/base.twig      # Base HTML layout (head, header, footer, wp_head/wp_footer)
+│   ├── partials/              # head.twig, menu.twig (recursive), footer.twig
+│   ├── components/            # Reusable Twig components (atoms/molecules/organisms), see §Components
+│   └── templates/             # index.twig, front-page.twig, page.twig, single.twig, 404.twig
+├── assets/
+│   ├── styles/app.css         # `@import "tailwindcss"` + `@theme` (tokens) + `@source` + `@plugin` typography
+│   ├── scripts/app.js         # JS entry point (vanilla), imports app.css
+│   ├── images/sprite.svg      # SVG sprite consumed by the `icon` component
+│   └── fonts/                 # Empty (`.gitkeep`), use as needed
+├── package.json
+└── vite.config.js
+```
+
+`dist/` (production build) and `node_modules/` are generated, not versioned (see the root `.gitignore`).
+
+## Twig components (`views/components/`)
+
+Reusable component library, organized into `01-atoms/`,
+`02-molecules/`, `03-organisms/` (one folder per component: `*.twig` +
+`README.md` with a real usage example):
+
+| Component | Type | Role |
+|---|---|---|
+| `button` | atom | `<a>`/`<button>`, primary/secondary/ghost variants, sm/md/lg sizes |
+| `heading` | atom | semantic level (`<h1>`-`<h6>`) decoupled from visual size |
+| `badge` | atom | static indicator (neutral/success/warning/danger/info variants) |
+| `tag` | atom | optionally removable chip (vanilla JS, `assets/scripts/app.js`) |
+| `icon` | atom | SVG sprite (`assets/images/sprite.svg`), isolated (`sprite_url` as an explicit prop) |
+| `card` | molecule | image/title/content/footer slots, vertical/horizontal variant (+ `reverse`) |
+| `accordion-item` | molecule | native `<details>/<summary>`, no JS |
+| `hero` | organism | banner (title/subtitle/media/CTA), composes `heading` + `button` |
+| `cards-grid` | organism | 2/3/4-column grid of vertical `card` |
+| `accordion` | organism | `divide-y` wrapper around `accordion-item` |
+| `embed` | organism | raw third-party content (iframe, social embed) |
+
+Convention (documented in each component, see also
+[`prompts/WORDPRESS-MISSION-BRIEF.md`](prompts/WORDPRESS-MISSION-BRIEF.md) §3):
+- props documented in a Twig comment at the top of the file (no
+  automatically validated schema, Twig has no equivalent to Drupal's
+  Single Directory Components)
+- component without slots → `{% include '...' with {...} only %}`
+  (isolated, never an implicit dependency on `post`/`site`)
+- component with slots → `{% embed '...' %}` **without** `only` on the
+  `embed` itself (the content of `{% block %}` must keep access to the
+  calling page's scope); each `{% include %}` *inside* a slot keeps its
+  own `only`
+
+## Page builder (ACF Flexible Content)
+
+`inc/acf-fields.php` registers in PHP (`acf_add_local_field_group()`, not
+via the UI + Local JSON export — faster and more reliable to evolve) a
+`sections` Flexible Content field on the `page` post type:
+- top level: `hero` (max 1) and `section` layouts only
+- `section` contains `columns` (1/2/3) and a nested flexible content
+  `content` with `text_media`, `cards_grid`, `cta_banner`, `accordion`,
+  `embed`
+
+`views/templates/page.twig` does the pure ACF layout → Twig component
+mapping (zero structural HTML outside the `section` grid); see
+[`prompts/WORDPRESS-MISSION-BRIEF.md`](prompts/WORDPRESS-MISSION-BRIEF.md) §7 for the full detail
+and [`prompts/WORDPRESS-PROCESS.md`](prompts/WORDPRESS-PROCESS.md) for
+the real bugs hit while building it.
+
+## Multilingual (Polylang)
+
+FR (default) + EN, symmetric `/fr/` and `/en/` prefixes on both
+languages, URL-only detection. See
+[`prompts/WORDPRESS-MISSION-BRIEF.md`](prompts/WORDPRESS-MISSION-BRIEF.md) §8 for the config and the
+translation workflow (copying the `sections` structure when a translation
+is created is Polylang's native free behavior, no need for Polylang Pro).
+
+## Timber / Twig
+
+### Bootstrap (`functions.php`)
+
+```php
+namespace App\Theme;
+
+use Timber\Timber;
+
+Timber::init();
+
+new Site();          // src/Site.php — enables theme supports, menus, context
+require __DIR__ . '/inc/vite.php';
+require __DIR__ . '/inc/acf-fields.php'; // "sections" Flexible Content field (ACF/SCF)
+```
+
+Timber looks for `.twig` files in the `views/` folder by default (`Timber::$dirname`), so paths passed to `Timber::render()` are relative to `views/` (e.g. `templates/page.twig`).
+
+### `App\Theme\Site` (`src/Site.php`)
+
+Extends `Timber\Site`:
+- `theme_supports()` (`after_setup_theme` hook): `title-tag`, `post-thumbnails`, `automatic-feed-links`, `editor-styles`, `html5`, and registers the `primary` menu.
+- `add_to_context()` (`timber/context` filter): adds `site` (the `Site` instance, giving access to `site.name`, `site.url`, `site.charset`, `site.language_attributes`…) and `menu` (`Timber::get_menu('primary')`) to the context available in every Twig template.
+
+To add global data to all templates (e.g. an ACF setting, an option), add it in `add_to_context()`.
+
+To add a custom post type / taxonomy, fill in `register_post_types()` / `register_taxonomies()` (stubs present in the class, hooked on `init`).
+
+### Template hierarchy
+
+Each PHP file at the theme root follows the standard [WordPress template hierarchy](https://developer.wordpress.org/themes/basics/template-hierarchy/) and delegates rendering to a `.twig` file in `views/templates/`:
+
+| PHP file | Context | Twig template rendered |
+|---|---|---|
+| `index.php` | Archives, blog | `templates/index.twig` (+ `templates/front-page.twig` with priority if `is_front_page()`) |
+| `front-page.php` | Static homepage (*Settings > Reading* setting) | `templates/front-page.twig` |
+| `page.php` | Page (`page` post_type) | `templates/page-{slug}.twig` if present, otherwise `templates/page.twig` |
+| `single.php` | Post (or any post type) | `templates/single-{post_type}.twig` if present, otherwise `templates/single.twig` |
+| `404.php` | Not found | `templates/404.twig` |
+
+**Adding a dedicated template**: for example for a "Contact" page (slug `contact`), create `views/templates/page-contact.twig` (which can do `{% extends 'layouts/base.twig' %}`) — `page.php` detects it automatically, no PHP change needed. Same logic for an `event` post type → `views/templates/single-event.twig`.
+
+### Layout and partials
+
+- `views/layouts/base.twig`: full HTML structure (`<html>`, `<head>` via `partials/head.twig`, `<header>` with logo + `partials/menu.twig`, `<main>` with the `{% block content %}`, `partials/footer.twig`, `wp_footer()`). Each template in `views/templates/` does `{% extends 'layouts/base.twig' %}` and fills `{% block content %}`.
+- `partials/head.twig`: `<meta charset>`, viewport, `wp_head()`.
+- `partials/menu.twig`: recursive rendering of a Timber menu (`item.children`), used for the `primary` menu.
+- `partials/footer.twig`: copyright.
+
+### Context available in Twig templates
+
+In addition to what `Timber::context()` adds by default (`post`, `posts`, `body_class`, etc. depending on the PHP file), every template has access to:
+- `site` — `Site` object (`site.name`, `site.url`, `site.charset`, `site.language_attributes`, `site.theme`…)
+- `menu` — items of the `primary` navigation menu (assigned in *Appearance > Menus*)
+
+## Assets (Tailwind CSS 4 + Vite)
+
+### CSS (`assets/styles/app.css`)
+
+```css
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@source "../../views/**/*.twig";
+@source "../../**/*.php";
+
+@theme {
+    --color-primary: oklch(0.55 0.22 265);
+    --color-primary-hover: oklch(0.47 0.22 265);
+    /* ... surface/text/border/success/warning/danger/info, radius, spacing */
+}
+```
+
+Tailwind CSS 4 uses a **CSS-first** configuration: no `tailwind.config.js`. The `@source` directives explicitly tell it where to scan for used classes (by default Tailwind only looks from the Vite project root while respecting `.gitignore`, which would probably be enough, but this makes it explicit) — `views/**/*.twig` also covers `views/components/`. The `@theme` block defines semantic tokens (colors, radius, spacing): the **only customization point** between projects based on this theme, no arbitrary `[...]` values in components unless justified in a comment. The `@tailwindcss/typography` plugin provides the `prose`/`prose-neutral` classes used for WYSIWYG content (post content, ACF wysiwyg).
+
+IDE diagnostics like *"Unknown at rule @plugin/@source/@theme"* are normal: the CSS language server doesn't know these Tailwind v4 at-rules yet, it's not a functional error.
+
+### JS (`assets/scripts/app.js`)
+
+Single entry point, imports the CSS and handles vanilla interactions
+(no framework):
+
+```js
+import '../styles/app.css';
+
+document.addEventListener('click', (event) => {
+    const removeButton = event.target.closest('[data-tag-remove]');
+    if (!removeButton) return;
+    removeButton.closest('[data-tag]')?.remove();
+});
+```
+
+The delegated listener above handles the remove button of the `tag`
+component (`views/components/01-atoms/tag/`) — a single global listener
+rather than a per-component JS dependency. To add JS, write it in this
+file (or import it from another module) — Vite's entry point
+(`vite.config.js` → `build.rollupOptions.input`) is a single file
+(`assets/scripts/app.js`).
+
+### Production build (`make vite-build`)
+
+```bash
+make vite-build
+# → npm --prefix web/app/themes/custom/tailwind run build
+```
+
+Generates `dist/assets/*.{js,css}` (hashed files) and `dist/.vite/manifest.json`. This is the manifest that `inc/vite.php` reads to enqueue the right files in production.
+
+### Dev server / HMR (`make vite-dev`)
+
+```bash
+make vite-dev
+# → npm --prefix web/app/themes/custom/tailwind run dev
+```
+
+Starts Vite on `https://tailwind-wordpress.localhost:3009/` (port exposed directly by the `node` service, outside Traefik):
+- Reuses Traefik's mkcert certificates (`docker/traefik/certs/tailwind-wordpress.localhost{,-key}.pem`) to serve over HTTPS with an already-trusted certificate — no browser warning.
+- `hmr: { host, protocol: 'wss' }`: the HMR client connects over a secure WebSocket on this same host/port.
+
+### Dev / prod switch (`inc/vite.php`)
+
+On every page load (`wp_enqueue_scripts`), the theme detects whether the Vite server is running:
+
+```php
+$connection = @fsockopen(VITE_INTERNAL_HOST, VITE_DEV_PORT, ...); // 'node', 3009
+```
+
+The test uses the internal Docker service name `node:3009` (only resolvable from the `php` container, via the Compose network), not `tailwind-wordpress.localhost` (which only resolves on the host/browser side). This is an important distinction if you modify this file:
+- **Dev server detection** (server-side, PHP → Node): `node:3009`.
+- **Script URLs served to the browser**: `https://tailwind-wordpress.localhost:3009` (`VITE_DEV_HOST`).
+
+If the dev server responds (and `WP_ENV=development`):
+- enqueues `https://tailwind-wordpress.localhost:3009/@vite/client` (HMR client)
+- enqueues `https://tailwind-wordpress.localhost:3009/assets/scripts/app.js` (uncompiled source, transformed on the fly)
+
+Otherwise, it reads `dist/.vite/manifest.json` and enqueues the built files (`dist/assets/app-XXXX.js`, `dist/assets/app-XXXX.css`).
+
+In both cases, a `script_loader_tag` filter adds `type="module"` (WordPress doesn't natively enqueue ES modules without it).
+
+### `vite.config.js` — details
+
+```js
+export default defineConfig(({ command }) => ({
+    base: command === 'build' ? '/app/themes/custom/tailwind/dist/' : '/',
+    plugins: [tailwindcss(), phpTwigReload()],
+    ...
+}));
+```
+
+- **Conditional `base`**: in `build`, internal URLs generated by Vite (e.g. `url()` in CSS) must be prefixed with the theme's real public path (`/app/themes/custom/tailwind/dist/` — the `/app` comes from `CONTENT_DIR` defined by Bedrock in `config/application.php`). In `serve` (dev), `base: '/'` is kept: the dev server serves files from the theme root, so `/assets/scripts/app.js` correctly matches `<theme>/assets/scripts/app.js`. Mixing the two breaks either the dev URLs or the prod URLs.
+- **`server.https`**: reads the mkcert certificates if they exist, otherwise lets Vite generate a self-signed certificate (`https: true`).
+- **`server.watch.usePolling: true`**: see the HMR section below — needed under Colima/virtiofs.
+- **`phpTwigReload()` plugin**: see the HMR section below.
+
+## HMR: why CSS/Twig weren't reloading (and the fix)
+
+Two distinct problems, both fixed in `vite.config.js`:
+
+### 1. `.twig`/`.php` files don't trigger any reload by default
+
+Vite only does HMR for files that are part of its **module graph** (imported JS/CSS). A `.twig` file rendered server-side is never part of that: editing a template has, by default, *no effect at all* on the browser side, even with the dev server running.
+
+**Fix**: a minimal Vite plugin (`phpTwigReload()`, in `vite.config.js`) listens for changes on `**/*.twig` and `**/*.php` via `server.watcher` and triggers a full page reload:
+
+```js
+server.watcher.on('change', (file) => {
+    if (/\.(twig|php)$/.test(file)) {
+        server.ws.send({ type: 'full-reload' });
+    }
+});
+```
+
+### 2. The file watcher saw no changes coming from macOS
+
+More fundamentally: under [Colima](https://github.com/abiosoft/colima) with the `virtiofs` mount type (see `docker/README.md`), `inotify` events triggered by a file change made from macOS (editor, IDE) don't reliably propagate into the Linux container. As a result, neither Vite's watcher nor the `@tailwindcss/vite` plugin's watcher (which scans `@source` files to regenerate CSS) detected anything — so the CSS also wasn't regenerated when a Tailwind class was added/removed in a `.twig` file.
+
+**Fix**: force polling instead of relying on native filesystem events:
+
+```js
+server: {
+    watch: {
+        usePolling: true,
+        interval: 300, // ms
+    },
+},
+```
+
+The Tailwind plugin shares the same `server.watcher` as Vite, so this setting fixes both symptoms (page not reloading, CSS not regenerating) at once. Trade-off: polling uses a bit more CPU than a native watcher — acceptable for local development.
+
+### Verifying HMR works
+
+1. `make vite-dev`
+2. Open https://tailwind-wordpress.localhost/ (the `<script type="module" src="https://tailwind-wordpress.localhost:3009/...">` should appear in the page — otherwise the dev server isn't detected, see the dev/prod switch section above)
+3. Change a Tailwind class in a `.twig` file → the page reloads automatically and the style is up to date.
+
+## Commands
+
+| Command | Effect |
+|---|---|
+| `make vite-install` | `npm install` in the theme (once, or after changing `package.json`) |
+| `make vite-dev` | Starts the Vite dev server (HMR) at `https://tailwind-wordpress.localhost:3009/` |
+| `make vite-build` | Production build (`dist/`) |
+| `make npm ARGS="..."` | Arbitrary npm command in the theme folder, e.g. `make npm ARGS="run build"` |
+| `make wp ARGS="theme activate custom/tailwind"` | Activates the theme |
+
+The dev server runs in the `node` Docker service (`command: tail -f /dev/null`, so `make vite-dev` runs it via `docker compose exec`) — it doesn't start on its own with `make start` and must be started manually every dev session.
+
+## PHP autoload
+
+The `App\Theme\Site` class is loaded via the PSR-4 mapping in the **root** `composer.json` of the repo (not a separate `composer.json` in the theme):
+
+```json
+"autoload": {
+    "psr-4": {
+        "App\\Theme\\": "web/app/themes/custom/tailwind/src/"
+    }
+}
+```
+
+After adding a new class in `src/`, regenerate the autoloader if needed:
+
+```bash
+make shell
+composer dump-autoload
+```
+
+## See also
+
+- [`prompts/WORDPRESS-MISSION-BRIEF.md`](prompts/WORDPRESS-MISSION-BRIEF.md) — full mission (components, page builder, multilingual)
+- [`prompts/WORDPRESS-PROCESS.md`](prompts/WORDPRESS-PROCESS.md) — real execution journal (bugs found by testing, not by re-reading the code)
+- [`DEPLOY.md`](DEPLOY.md) — o2switch deployment (manual and CI GitHub Actions)
