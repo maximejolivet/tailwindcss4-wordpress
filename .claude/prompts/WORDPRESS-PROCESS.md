@@ -16,16 +16,16 @@ ci-dessous), jamais en relisant le code.
 
 ## Sommaire
 
-- [0. État de départ (vérifié dans le dépôt au 2026-07-31)](#0-état-de-départ-vérifié-dans-le-dépôt-au-2026-07-31)
+- [0. État de départ (vérifié dans le dépôt)](#0-état-de-départ-vérifié-dans-le-dépôt)
 - [1. Pipeline de build — à faire](#1-pipeline-de-build-à-faire)
-- [2. Design tokens — fait (2026-07-31)](#2-design-tokens-fait-2026-07-31)
-- [3-6. Composants Twig — 7/7 faits (2026-07-31)](#3-6-composants-twig-77-faits-2026-07-31)
-- [7. Page builder ACF Flexible Content — fait et vérifié de bout en bout (2026-07-31)](#7-page-builder-acf-flexible-content-fait-et-vérifié-de-bout-en-bout-2026-07-31)
-- [8. Multilingue Polylang — configuré et vérifié (2026-07-31)](#8-multilingue-polylang-configuré-et-vérifié-2026-07-31)
-- [9. Qualité / CI — à faire](#9-qualité-ci-à-faire)
+- [2. Design tokens — fait](#2-design-tokens-fait)
+- [3-6. Composants Twig — 7/7 faits](#3-6-composants-twig-77-faits)
+- [7. Page builder ACF Flexible Content — fait et vérifié de bout en bout](#7-page-builder-acf-flexible-content-fait-et-vérifié-de-bout-en-bout)
+- [8. Multilingue Polylang — configuré et vérifié](#8-multilingue-polylang-configuré-et-vérifié)
+- [9. Qualité / CI — fait](#9-qualité-ci-fait)
 - [Points de vigilance — résolus ou encore ouverts](#points-de-vigilance-résolus-ou-encore-ouverts)
 
-## 0. État de départ (vérifié dans le dépôt au 2026-07-31)
+## 0. État de départ (vérifié dans le dépôt)
 
 Ce qui existe déjà, documenté en détail dans [`THEME.md`](../THEME.md)
 et [`DOCKER.md`](../DOCKER.md) :
@@ -53,7 +53,7 @@ et [`DOCKER.md`](../DOCKER.md) :
 - `composer.json` : scripts `lint` (Pint) et `test` (Pest) déjà déclarés,
   mais **aucun test Pest écrit**, aucune CI GitHub Actions
 
-> Mise à jour du 2026-07-31 : le bloc `@theme` et le premier composant
+> Mise à jour : le bloc `@theme` et le premier composant
 > (`button`) ont été livrés — voir §2 et §3-6 ci-dessous, qui remplacent les
 > deux puces correspondantes de cette liste initiale.
 
@@ -78,7 +78,7 @@ déduire d'un journal rédigé au passé) :
 - [ ] script de validation des en-têtes de props des composants (§3 de
   `wordpress-mission-brief.md`)
 
-## 2. Design tokens — fait (2026-07-31)
+## 2. Design tokens — fait
 
 - [x] bloc `@theme` écrit dans `assets/styles/app.css` : `--color-primary(-hover)`,
   `--color-secondary(-hover)`, `--color-surface(-alt/-inverse)`,
@@ -90,7 +90,7 @@ déduire d'un journal rédigé au passé) :
   restent à affiner selon la charte réelle du client — valeurs actuelles
   arbitraires (placeholders OKLCH), à remplacer avant mise en production
 
-## 3-6. Composants Twig — 7/7 faits (2026-07-31)
+## 3-6. Composants Twig — 7/7 faits
 
 - [x] `views/components/01-atoms/`, `02-molecules/`, `03-organisms/` créés
 - [x] `button` (`01-atoms/button/`) : variants primary/secondary/ghost,
@@ -150,7 +150,7 @@ déduire d'un journal rédigé au passé) :
    relatif/https) — à surveiller si un jour un lien absolu est affiché tel
    quel côté utilisateur.
 
-## 7. Page builder ACF Flexible Content — fait et vérifié de bout en bout (2026-07-31)
+## 7. Page builder ACF Flexible Content — fait et vérifié de bout en bout
 
 - [x] plugins installés et activés — **avec un correctif de composition
   découvert en essayant** : le nom de paquet Composer réel est
@@ -205,7 +205,7 @@ déduire d'un journal rédigé au passé) :
   adapté à des CTA internes que `url` ou que `page_link` (qui imposerait de
   choisir une page existante plutôt qu'un chemin libre).
 - [x] **`cards-grid`, `accordion` + `accordion-item`, `embed` livrés**
-  (2026-07-31), `text_media` mappé sans composant dédié (composition directe
+  `text_media` mappé sans composant dédié (composition directe
   de `card` horizontal dans `page.twig`, comme prévu par la mission §7b) :
   - `views/components/03-organisms/cards-grid/` : grille 2/3/4 colonnes
     (objet de mapping Tailwind, jamais `grid-cols-{{ columns }}`), boucle de
@@ -234,7 +234,7 @@ déduire d'un journal rédigé au passé) :
   cette composition se répète ailleurs (règle latente du futur README
   d'architecture, §"quand créer un composant vs un template")
 - [x] **workflow de traduction symétrique Polylang testé réellement**
-  (2026-07-31) : depuis `Sample Page` (post `2`, FR), clic sur le `+` en
+  depuis `Sample Page` (post `2`, FR), clic sur le `+` en
   face du drapeau anglais dans le panneau *Languages* → nouvelle page
   (`post-new.php?from_post=2&new_lang=en`) créée avec le champ `sections`
   **déjà rempli à l'identique** (colonnes, layout `cta_banner` imbriqué,
@@ -252,7 +252,7 @@ déduire d'un journal rédigé au passé) :
   champ texte dans la page EN sans casser la structure (aucun garde-fou
   technique ne l'empêche, c'est une discipline éditoriale, comme prévu).
 
-## 8. Multilingue Polylang — configuré et vérifié (2026-07-31)
+## 8. Multilingue Polylang — configuré et vérifié
 
 - [x] FR (défaut) + EN ajoutées via l'assistant Polylang (`mlang_wizard`,
   seul chemin possible — pas de commande WP-CLI native pour Polylang)
@@ -284,12 +284,20 @@ sans erreur PHP/Twig (Twig ne lève pas sur attribut nul). Comportement
 attendu tant qu'aucune traduction n'est créée, pas un défaut du composant —
 mentionné ici pour ne pas le confondre plus tard avec une régression.
 
-## 9. Qualité / CI — à faire
+## 9. Qualité / CI — fait
 
-- [ ] écrire les premiers tests Pest (aucun test n'existe actuellement
-  malgré le script `composer test` déjà présent)
-- [ ] job GitHub Actions : `composer install`, `npm ci`, `composer lint`,
-  `composer test`, `npm run build`, budget CSS gzippé
+- [x] job GitHub Actions (`.github/workflows/deploy.yml`, job `Build &
+  Quality`) : `composer install` (avec dev deps), `composer validate`,
+  `composer lint` (Pint), `composer phpstan` (niveau 5), `composer
+  audit` — bloque le build/déploiement si l'un échoue, puis `composer
+  install --no-dev` et `npm run build`. Vérifié en conditions réelles
+  (runs verts sur `main`, voir `.claude/DEPLOY.md` §3)
+- [x] tests Pest : abandonnés délibérément, pas juste repoussés — le
+  script `composer test` n'existe plus dans `composer.json` (cf.
+  `CLAUDE.md` §Linting : "Aucune suite de tests... configuré")
+- [ ] budget CSS gzippé en CI : pas fait, le build du thème tourne bien
+  (`npm run build` dans le job `Build & Quality`) mais sans vérification
+  de taille
 
 ## Points de vigilance — résolus ou encore ouverts
 
@@ -335,16 +343,16 @@ below), never by re-reading the code.
 
 ## Table of contents
 
-- [0. Starting point (verified in the repo as of 2026-07-31)](#0-starting-point-verified-in-the-repo-as-of-2026-07-31)
+- [0. Starting point (verified in the repo)](#0-starting-point-verified-in-the-repo)
 - [1. Build pipeline — to do](#1-build-pipeline-to-do)
-- [2. Design tokens — done (2026-07-31)](#2-design-tokens-done-2026-07-31)
-- [3-6. Twig components — 7/7 done (2026-07-31)](#3-6-twig-components-77-done-2026-07-31)
-- [7. ACF Flexible Content page builder — done and verified end to end (2026-07-31)](#7-acf-flexible-content-page-builder-done-and-verified-end-to-end-2026-07-31)
-- [8. Polylang multilingual — configured and verified (2026-07-31)](#8-polylang-multilingual-configured-and-verified-2026-07-31)
-- [9. Quality / CI — to do](#9-quality-ci-to-do)
+- [2. Design tokens — done](#2-design-tokens-done)
+- [3-6. Twig components — 7/7 done](#3-6-twig-components-77-done)
+- [7. ACF Flexible Content page builder — done and verified end to end](#7-acf-flexible-content-page-builder-done-and-verified-end-to-end)
+- [8. Polylang multilingual — configured and verified](#8-polylang-multilingual-configured-and-verified)
+- [9. Quality / CI — done](#9-quality-ci-done)
 - [Watch points — resolved or still open](#watch-points-resolved-or-still-open)
 
-## 0. Starting point (verified in the repo as of 2026-07-31)
+## 0. Starting point (verified in the repo)
 
 What already exists, documented in detail in [`THEME.md`](../THEME.md)
 and [`DOCKER.md`](../DOCKER.md):
@@ -372,7 +380,7 @@ and [`DOCKER.md`](../DOCKER.md):
 - `composer.json`: `lint` (Pint) and `test` (Pest) scripts already declared,
   but **no Pest test written**, no GitHub Actions CI
 
-> Update on 2026-07-31: the `@theme` block and the first component
+> Update: the `@theme` block and the first component
 > (`button`) have been delivered — see §2 and §3-6 below, which replace the
 > two corresponding bullets in this initial list.
 
@@ -397,7 +405,7 @@ infer from a journal written in the past tense):
 - [ ] script validating the components' props headers (§3 of
   `wordpress-mission-brief.md`)
 
-## 2. Design tokens — done (2026-07-31)
+## 2. Design tokens — done
 
 - [x] `@theme` block written in `assets/styles/app.css`: `--color-primary(-hover)`,
   `--color-secondary(-hover)`, `--color-surface(-alt/-inverse)`,
@@ -410,7 +418,7 @@ infer from a journal written in the past tense):
   values are arbitrary (OKLCH placeholders), to be replaced before going to
   production
 
-## 3-6. Twig components — 7/7 done (2026-07-31)
+## 3-6. Twig components — 7/7 done
 
 - [x] `views/components/01-atoms/`, `02-molecules/`, `03-organisms/` created
 - [x] `button` (`01-atoms/button/`): primary/secondary/ghost variants,
@@ -470,7 +478,7 @@ infer from a journal written in the past tense):
    it relative/https) — worth watching if an absolute link is ever displayed
    as-is on the user side.
 
-## 7. ACF Flexible Content page builder — done and verified end to end (2026-07-31)
+## 7. ACF Flexible Content page builder — done and verified end to end
 
 - [x] plugins installed and activated — **with a naming fix
   discovered while trying**: the real Composer package name is
@@ -525,7 +533,7 @@ infer from a journal written in the past tense):
   suited to internal CTAs than `url` or `page_link` (which would force
   picking an existing page rather than a free-form path).
 - [x] **`cards-grid`, `accordion` + `accordion-item`, `embed` delivered**
-  (2026-07-31), `text_media` mapped without a dedicated component (direct
+  `text_media` mapped without a dedicated component (direct
   composition of horizontal `card` in `page.twig`, as planned in mission §7b):
   - `views/components/03-organisms/cards-grid/`: 2/3/4-column grid
     (Tailwind mapping object, never `grid-cols-{{ columns }}`), loop of
@@ -554,7 +562,7 @@ infer from a journal written in the past tense):
   this composition repeats elsewhere (latent rule for the future architecture
   README, §"when to create a component vs. a template")
 - [x] **symmetric Polylang translation workflow actually tested**
-  (2026-07-31): from `Sample Page` (post `2`, FR), clicking the `+` next
+  from `Sample Page` (post `2`, FR), clicking the `+` next
   to the English flag in the *Languages* panel → new page
   (`post-new.php?from_post=2&new_lang=en`) created with the `sections`
   field **already filled in identically** (columns, nested `cta_banner`
@@ -572,7 +580,7 @@ infer from a journal written in the past tense):
   the structure (no technical guardrail prevents it, it's an editorial
   discipline, as expected).
 
-## 8. Polylang multilingual — configured and verified (2026-07-31)
+## 8. Polylang multilingual — configured and verified
 
 - [x] FR (default) + EN added via the Polylang wizard (`mlang_wizard`,
   the only path available — no native WP-CLI command for Polylang)
@@ -604,12 +612,19 @@ with no PHP/Twig error (Twig doesn't raise on a null attribute). Expected
 behavior as long as no translation has been created, not a component defect —
 mentioned here so it's not later mistaken for a regression.
 
-## 9. Quality / CI — to do
+## 9. Quality / CI — done
 
-- [ ] write the first Pest tests (no test currently exists
-  despite the `composer test` script already being present)
-- [ ] GitHub Actions job: `composer install`, `npm ci`, `composer lint`,
-  `composer test`, `npm run build`, gzipped CSS budget
+- [x] GitHub Actions job (`.github/workflows/deploy.yml`, `Build &
+  Quality` job): `composer install` (with dev deps), `composer
+  validate`, `composer lint` (Pint), `composer phpstan` (level 5),
+  `composer audit` — stops the build/deploy if any of them fail, then
+  `composer install --no-dev` and `npm run build`. Verified for real
+  (green runs on `main`, see `.claude/DEPLOY.md` §3)
+- [x] Pest tests: deliberately abandoned, not just deferred — the
+  `composer test` script no longer exists in `composer.json` (see
+  `CLAUDE.md` §Linting: "No test suite... configured")
+- [ ] gzipped CSS budget in CI: not done — the theme build runs fine
+  (`npm run build` in the `Build & Quality` job) but with no size check
 
 ## Watch points — resolved or still open
 
