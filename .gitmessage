@@ -2,9 +2,9 @@
 
 <optional body>
 
-Verified-by: <lint, phpstan, audit>
+Verified-by: Pint <N> errors, PHPStan <N> errors, audit <N> advisories
 Refs: #<issue>
-Co-authored-by: <name> <email>
+Author: <name> <email>
 
 # Format enforced by the commitlint/Husky hook (see commitlint.config.js
 # and .claude/skills/semantic-commit-messages/) — a message that doesn't
@@ -35,14 +35,16 @@ Co-authored-by: <name> <email>
 # points; otherwise a short paragraph is enough.
 #
 # Footer trailers below the body, one per line, delete what doesn't apply:
-# - Verified-by: comma-separated subset of what you actually ran before
-#   committing — check against this list, then write the ones that pass:
-#   [ ] make lint     — 0 Pint errors
-#   [ ] make phpstan  — 0 errors (level 5)
-#   [ ] make audit    — no advisories
+# - Verified-by: run the three, then fill in the real counts (not just a
+#   checkmark), e.g. "Verified-by: Pint 0 errors, PHPStan 0 errors, audit
+#   0 advisories":
+#   make lint     — Pint, "N style issues" (0 if PASS)
+#   make phpstan  — PHPStan level 5, "Found N errors" (0 if [OK])
+#   make audit    — composer audit, count of listed advisories (0 if none)
 # - Refs: GitHub issue number if relevant ("Refs #123", "Closes #123")
-# - Co-authored-by: standard git trailer to credit a pair/contributor who
-#   isn't the committer (GitHub renders it on the commit) — delete this
-#   line entirely if solo
+# - Author: credit whoever/whatever actually wrote the change if
+#   different from the committer (e.g. a pair, or an AI agent) — standard
+#   git trailer is "Co-authored-by:" (GitHub renders it on the commit);
+#   delete this line if there's nothing to credit beyond the committer
 #
 # Lines starting with # are stripped and won't be part of the message.

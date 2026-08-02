@@ -131,16 +131,16 @@ Nomenclature [qoomon/git-conventional-commits](https://github.com/qoomon/git-con
 
 Types : `feat`, `fix`, `refactor`, `perf`, `style`, `test`, `docs`, `build`, `ops`, `chore`.
 
-Un template (`.gitmessage`) pré-remplit `git commit` (sans `-m`) : le sujet, un corps optionnel, et deux trailers en footer (`Verified-by:`, `Refs:`) — la checklist type/vérification reste disponible en commentaire (`#`, jamais incluse dans le message final) :
+Un template (`.gitmessage`) pré-remplit `git commit` (sans `-m`) : le sujet, un corps optionnel, et trois trailers en footer (`Verified-by:` avec les résultats chiffrés réels de `make lint`/`phpstan`/`audit`, `Refs:`, `Author:`) — la checklist type/vérification reste disponible en commentaire (`#`, jamais incluse dans le message final) :
 
 ```
 <type>(<scope>): <emoji> <description>
 
 <optional body>
 
-Verified-by: <lint, phpstan, audit>
+Verified-by: Pint <N> errors, PHPStan <N> errors, audit <N> advisories
 Refs: #<issue>
-Co-authored-by: <name> <email>
+Author: <name> <email>
 ```
 
 À activer une fois en local (pas fait automatiquement) :
@@ -274,16 +274,16 @@ All commands run via `make` from the repo root (see `Makefile`; run `make help` 
 
 Types: `feat`, `fix`, `refactor`, `perf`, `style`, `test`, `docs`, `build`, `ops`, `chore`.
 
-A template (`.gitmessage`) pre-fills `git commit` (without `-m`): the subject, an optional body, and two footer trailers (`Verified-by:`, `Refs:`) — the change-type/verification checklist stays available as a comment (`#`, never part of the final message):
+A template (`.gitmessage`) pre-fills `git commit` (without `-m`): the subject, an optional body, and three footer trailers (`Verified-by:` with the real counts from `make lint`/`phpstan`/`audit`, `Refs:`, `Author:`) — the change-type/verification checklist stays available as a comment (`#`, never part of the final message):
 
 ```
 <type>(<scope>): <emoji> <description>
 
 <optional body>
 
-Verified-by: <lint, phpstan, audit>
+Verified-by: Pint <N> errors, PHPStan <N> errors, audit <N> advisories
 Refs: #<issue>
-Co-authored-by: <name> <email>
+Author: <name> <email>
 ```
 
 Opt in once locally (not wired up automatically):
