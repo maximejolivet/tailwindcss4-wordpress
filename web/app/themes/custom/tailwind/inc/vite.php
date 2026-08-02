@@ -51,42 +51,37 @@ function enqueue_vite_assets(): void
 
     if ($is_dev) {
         $dev_server = sprintf('https://%s:%d', VITE_DEV_HOST, VITE_DEV_PORT);
-        $handles = ['vite-client', 'tailwind-theme-app'];
+        $module_handles = ['vite-client', 'tailwind-theme-app'];
 
         wp_enqueue_script('vite-client', "{$dev_server}/@vite/client", [], null, false);
         wp_enqueue_script('tailwind-theme-app', "{$dev_server}/" . VITE_ENTRY, [], null, true);
+    } else {
+        $manifest_path = get_template_directory() . '/dist/.vite/manifest.json';
 
-        add_filter('script_loader_tag', function (string $tag, string $handle) use ($handles) {
-            return vite_set_script_module($tag, $handle, $handles);
-        }, 10, 2);
+        if (!file_exists($manifest_path)) {
+            return;
+        }
 
-        return;
+        $manifest = json_decode((string) file_get_contents($manifest_path), true);
+        $entry = $manifest[VITE_ENTRY] ?? null;
+
+        if (!$entry) {
+            return;
+        }
+
+        $theme_uri = get_template_directory_uri();
+        $module_handles = ['tailwind-theme-app'];
+
+        wp_enqueue_script('tailwind-theme-app', "{$theme_uri}/dist/{$entry['file']}", [], null, true);
+
+        foreach ($entry['css'] ?? [] as $index => $css_file) {
+            wp_enqueue_style("tailwind-theme-app-{$index}", "{$theme_uri}/dist/{$css_file}", [], null);
+        }
     }
 
-    $manifest_path = get_template_directory() . '/dist/.vite/manifest.json';
-
-    if (!file_exists($manifest_path)) {
-        return;
-    }
-
-    $manifest = json_decode((string) file_get_contents($manifest_path), true);
-    $entry = $manifest[VITE_ENTRY] ?? null;
-
-    if (!$entry) {
-        return;
-    }
-
-    $theme_uri = get_template_directory_uri();
-
-    wp_enqueue_script('tailwind-theme-app', "{$theme_uri}/dist/{$entry['file']}", [], null, true);
-
-    add_filter('script_loader_tag', function (string $tag, string $handle) {
-        return vite_set_script_module($tag, $handle, ['tailwind-theme-app']);
+    add_filter('script_loader_tag', function (string $tag, string $handle) use ($module_handles) {
+        return vite_set_script_module($tag, $handle, $module_handles);
     }, 10, 2);
-
-    foreach ($entry['css'] ?? [] as $index => $css_file) {
-        wp_enqueue_style("tailwind-theme-app-{$index}", "{$theme_uri}/dist/{$css_file}", [], null);
-    }
 }
 
 add_action('wp_enqueue_scripts', __NAMESPACE__ . '\\enqueue_vite_assets');
