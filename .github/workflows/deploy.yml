@@ -4,18 +4,21 @@
 # dynamically whitelists the runner's IP via the cPanel API before
 # attempting SSH (see https://faq.o2switch.fr/cpanel/outils/exception-parefeu/).
 #
-# Two jobs, not one long list of steps:
-#   build  — checkout, composer install --no-dev, npm build. No secrets, no
-#            SSH. Stages the exact deployable tree (excludes dev-only files)
-#            and uploads it as an artifact.
-#   deploy — downloads that artifact, whitelists the runner's IP, then
-#            rsyncs it to the server over SSH.
+# Three jobs, not one long list of steps:
+#   quality — composer lint (Pint) + phpstan + audit. No secrets, no SSH,
+#             no build. Gates the two jobs below: a style/static-analysis/
+#             CVE regression should never reach production.
+#   build   — checkout, composer install --no-dev, npm build. No secrets, no
+#             SSH. Stages the exact deployable tree (excludes dev-only files)
+#             and uploads it as an artifact.
+#   deploy  — downloads that artifact, whitelists the runner's IP, then
+#             rsyncs it to the server over SSH.
 # IMPORTANT: the IP whitelist step and the rsync/ssh steps MUST stay in the
 # SAME job. Every job gets a fresh runner VM with its own public IP — if
 # whitelisting ran in a separate job from the SSH steps, the two would
 # almost certainly run from different IPs and every deploy would fail with
-# "Permission denied" for no obvious reason. Splitting `build` out is safe
-# specifically because it never touches SSH.
+# "Permission denied" for no obvious reason. Splitting `quality`/`build` out
+# is safe specifically because neither of them touches SSH.
 #
 # Required secrets (Settings > Secrets and variables > Actions):
 # - DEPLOY_SSH_KEY          SSH private key (dedicated to deployment, not a personal key)
@@ -42,8 +45,48 @@ concurrency:
   group: deploy-${{ github.ref }}
 
 jobs:
+  quality:
+    name: Quality (Pint, PHPStan, audit)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Cache Composer packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Validate composer.json/composer.lock
+        run: composer validate --strict --no-check-publish
+
+      # Dev dependencies (Pint, PHPStan, stubs) are required here, unlike
+      # the build job below which runs --no-dev — this job never ships
+      # anything, it only lints/analyses.
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Pint — code style
+        run: composer lint
+
+      - name: PHPStan — static analysis (level 5)
+        run: composer phpstan
+
+      - name: Composer audit — CVE scan
+        run: composer audit
+
   build:
     name: Build
+    needs: quality
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -102,12 +145,20 @@ jobs:
             --exclude '**/node_modules' --exclude '.DS_Store' --exclude '.idea' --exclude '.vscode' \
             ./ /tmp/site/
 
+      # include-hidden-files: upload-artifact excludes dotfiles/dotdirs by
+      # default since v4.4 (to avoid accidentally leaking secrets) — Vite
+      # writes its manifest to dist/.vite/manifest.json, so without this the
+      # artifact silently drops it, the deploy job never receives it, and
+      # inc/vite.php's enqueue_vite_assets() finds no manifest and skips
+      # enqueuing the theme's CSS/JS entirely (no error, just nothing to
+      # find). Confirmed root cause of a live production 2026-08-02 outage.
       - name: Upload build artifact
         uses: actions/upload-artifact@v7
         with:
           name: site
           path: /tmp/site
           retention-days: 1
+          include-hidden-files: true
 
   deploy:
     name: Deploy
