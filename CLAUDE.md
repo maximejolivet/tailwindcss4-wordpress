@@ -47,7 +47,7 @@ Outillage qualité PHP (scripts composer, aussi disponibles en cibles `make` —
 - [`.claude/THEME.md`](.claude/THEME.md) — thème custom Timber v2 + Tailwind CSS 4 + Vite (architecture, composants, page builder, HMR)
 - [`.claude/DEPLOY.md`](.claude/DEPLOY.md) — déploiement en production (o2switch, CI GitHub Actions — seule voie de déploiement)
 - [`.claude/prompts/WORDPRESS-MISSION-BRIEF.md`](.claude/prompts/WORDPRESS-MISSION-BRIEF.md) / [`WORDPRESS-PROCESS.md`](.claude/prompts/WORDPRESS-PROCESS.md) — mission complète et journal d'exécution réel
-- [`.claude/agents/`](.claude/agents/) / [`.claude/rules/`](.claude/rules/) / [`.claude/commands/`](.claude/commands/) — sous-agents (`planner`, `architect`, `code-reviewer`, `security-reviewer`, `refactor-cleaner`, `doc-updater`), règles toujours actives et commandes slash (`/plan`, `/refactor-clean`, `/update-docs`, `/build-fix`), adaptés à ce dépôt depuis [WorldFlowAI/everything-claude-code](https://github.com/WorldFlowAI/everything-claude-code)
+- [`.claude/agents/`](.claude/agents/) / [`.claude/rules/`](.claude/rules/) / [`.claude/commands/`](.claude/commands/) — sous-agents (`planner`, `architect`, `wordpress-developer`, `code-reviewer`, `security-reviewer`, `refactor-cleaner`, `doc-updater`), règles toujours actives et commandes slash (`/plan`, `/refactor-clean`, `/update-docs`, `/build-fix`), adaptés à ce dépôt depuis [WorldFlowAI/everything-claude-code](https://github.com/WorldFlowAI/everything-claude-code)
 
 ---
 
@@ -94,4 +94,4 @@ PHP quality tooling (composer scripts, also wired as `make` targets — `lint`/`
 - [`.claude/THEME.md`](.claude/THEME.md) — custom theme: Timber v2 + Tailwind CSS 4 + Vite (architecture, components, page builder, HMR)
 - [`.claude/DEPLOY.md`](.claude/DEPLOY.md) — production deployment (o2switch, GitHub Actions CI — the only deployment path)
 - [`.claude/prompts/WORDPRESS-MISSION-BRIEF.md`](.claude/prompts/WORDPRESS-MISSION-BRIEF.md) / [`WORDPRESS-PROCESS.md`](.claude/prompts/WORDPRESS-PROCESS.md) — full mission spec and real execution journal
-- [`.claude/agents/`](.claude/agents/) / [`.claude/rules/`](.claude/rules/) / [`.claude/commands/`](.claude/commands/) — subagents (`planner`, `architect`, `code-reviewer`, `security-reviewer`, `refactor-cleaner`, `doc-updater`), always-on rules, and slash commands (`/plan`, `/refactor-clean`, `/update-docs`, `/build-fix`), adapted to this repo from [WorldFlowAI/everything-claude-code](https://github.com/WorldFlowAI/everything-claude-code)
+- [`.claude/agents/`](.claude/agents/) / [`.claude/rules/`](.claude/rules/) / [`.claude/commands/`](.claude/commands/) — subagents (`planner`, `architect`, `wordpress-developer`, `code-reviewer`, `security-reviewer`, `refactor-cleaner`, `doc-updater`), always-on rules, and slash commands (`/plan`, `/refactor-clean`, `/update-docs`, `/build-fix`), adapted to this repo from [WorldFlowAI/everything-claude-code](https://github.com/WorldFlowAI/everything-claude-code)

@@ -8,6 +8,7 @@ Located in `.claude/agents/`:
 |---|---|---|
 | `planner` | Phased implementation plan, waits for confirmation | New features, new ACF layouts, anything touching several files |
 | `architect` | Structural decisions | New ACF layout families, plugin-vs-theme-code calls, Vite/Tailwind build changes |
+| `wordpress-developer` | Hands-on implementation | Writing the ACF fields/Twig components/theme PHP once a plan (or a small well-understood change) exists |
 | `code-reviewer` | Quality/convention review | Right after writing or modifying code |
 | `security-reviewer` | Vulnerability review | Before committing anything touching forms, `$wpdb`, auth, REST/AJAX, or the deploy workflow |
 | `refactor-cleaner` | Dead code removal | Orphaned Twig components, unreferenced ACF layouts, unused dependencies |
@@ -16,6 +17,7 @@ Located in `.claude/agents/`:
 ## When to reach for one without being asked
 
 - Complex or multi-file feature request → **planner**
+- Plan confirmed, or a small well-understood change → **wordpress-developer**
 - Code was just written/modified → **code-reviewer**
 - A structural choice needs justifying (new layout family, plugin vs. custom code) → **architect**
 - About to commit something touching auth/forms/queries/REST → **security-reviewer**
