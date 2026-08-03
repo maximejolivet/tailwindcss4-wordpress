@@ -116,8 +116,7 @@ Pas de cible `make` : le déploiement est entièrement automatique, sur push
 vers `main` (`.github/workflows/deploy.yml`) — build du thème, rsync vers
 o2switch, écriture du `.env` de production. Voir
 [`.claude/DEPLOY.md`](.claude/DEPLOY.md) pour le détail (secrets requis,
-`workflow_dispatch` pour un aperçu `dry_run`, historique des ennuis
-rencontrés).
+`workflow_dispatch` pour un aperçu `dry_run`).
 
 ### Dockhand
 
@@ -275,7 +274,7 @@ No `make` target: deployment is fully automatic, on push to `main`
 (`.github/workflows/deploy.yml`) — builds the theme, rsyncs to o2switch,
 writes the production `.env`. See [`.claude/DEPLOY.md`](.claude/DEPLOY.md)
 for the details (required secrets, `workflow_dispatch` for a `dry_run`
-preview, history of issues hit).
+preview).
 
 ### Dockhand
 
