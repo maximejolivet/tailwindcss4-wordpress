@@ -185,6 +185,21 @@ inclus, plus de `make deploy*`) le 2026-08-03.
    lui-même (`DEPLOY_ENV_FILE`, cf. §2) — un seul chemin de déploiement,
    plus de divergence possible entre "ce que fait `make deploy`" et "ce
    que fait le CI".
+7. **Permaliens cassés en prod après (quasiment) chaque déploiement CI,
+   sans que le smoke test ne le détecte** (découvert le 2026-08-03) —
+   `web/.htaccess` est gitignore (convention Bedrock : WordPress le génère
+   lui-même au flush des permaliens), donc jamais présent dans le repo ni
+   dans l'artefact déployable. Le rsync du job `Deploy` tourne avec
+   `--delete` sans l'exclure : à chaque déploiement, `--delete` supprimait
+   donc `web/.htaccess` du serveur. Le smoke test ne l'a jamais vu passer
+   au rouge parce qu'il ne teste que la page d'accueil, qui répond 200
+   même sans `.htaccess` — seules les URLs à permaliens "jolis" (articles,
+   pages, flux RSS...) 404 sans lui. Corrigé en ajoutant
+   `--exclude 'web/.htaccess'` au rsync, au même titre que `.env`/
+   `uploads`/`cache`. Après ce correctif, les permaliens doivent être
+   reflushés une fois (`wp rewrite flush --hard` en SSH, ou wp-admin >
+   Réglages > Permaliens > Enregistrer) pour régénérer le `.htaccess`
+   manquant sur le serveur — les déploiements suivants le préserveront.
 
 ## Fichiers concernés
 
@@ -382,6 +397,20 @@ included, no more `make deploy*`) on 2026-08-03.
    deploy*` entirely and have CI itself own writing `.env`
    (`DEPLOY_ENV_FILE`, see §2) — a single deployment path, no more
    possible drift between "what `make deploy` does" and "what CI does".
+7. **Permalinks broken in production after (almost) every CI deploy, with
+   the smoke test never catching it** (discovered 2026-08-03) —
+   `web/.htaccess` is gitignored (Bedrock convention: WordPress generates
+   it itself on permalink flush), so it's never in the repo or the
+   deployable artifact. The `Deploy` job's rsync runs with `--delete`
+   without excluding it: every deploy, `--delete` removed `web/.htaccess`
+   from the server. The smoke test never went red because it only checks
+   the homepage, which still returns 200 without `.htaccess` — only
+   "pretty" permalink URLs (posts, pages, RSS feeds...) 404 without it.
+   Fixed by adding `--exclude 'web/.htaccess'` to the rsync, alongside
+   `.env`/`uploads`/`cache`. After this fix, permalinks need flushing once
+   (`wp rewrite flush --hard` over SSH, or wp-admin > Settings >
+   Permalinks > Save) to regenerate the missing `.htaccess` on the
+   server — every deploy after that will preserve it.
 
 ## Related files
 

@@ -247,14 +247,19 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -v "${{ secrets.DEPLOY_SSH_HOST }}" >> ~/.ssh/known_hosts
 
-      # web/app/uploads, web/app/cache AND .env are excluded here too, not
-      # just from the build artifact: --delete removes anything on the
-      # server that isn't in the source, and none of these three exist in
-      # the artifact (uploads/cache are never populated by the build job;
-      # .env is never checked out at all, it's gitignored and only ever
-      # exists on the server). Without this exclude here, --delete wipes
-      # the live .env on every deploy — this is not hypothetical, it's
-      # exactly what happened on the first run of this split pipeline.
+      # web/app/uploads, web/app/cache, web/.htaccess AND .env are excluded
+      # here too, not just from the build artifact: --delete removes
+      # anything on the server that isn't in the source, and none of these
+      # four exist in the artifact (uploads/cache are never populated by the
+      # build job; .env and web/.htaccess are gitignored — WordPress
+      # generates .htaccess itself on permalink flush — so neither is ever
+      # checked out at all, both only ever exist on the server). Without
+      # these excludes here, --delete wipes them on every deploy — this is
+      # not hypothetical: it's exactly what happened to .env on the first
+      # run of this split pipeline, and to web/.htaccess (silently, since
+      # the smoke test only checks the homepage, which still 200s without
+      # it — every URL using pretty permalinks 404s instead) on every CI
+      # deploy until this exclude was added (2026-08-03).
       #
       # The 'P' (protect) filter keeps previously deployed dist/assets/*
       # files from being removed by --delete: Vite content-hashes every
@@ -270,6 +275,7 @@ jobs:
           rsync -avz --delete ${{ inputs.dry_run && '--dry-run' || '' }} \
             --filter='P web/app/themes/custom/tailwind/dist/assets/**' \
             --exclude 'web/app/uploads' --exclude 'web/app/cache' \
+            --exclude 'web/.htaccess' \
             --exclude '.env' --exclude '.env.*' \
             site/ "${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }}:${{ secrets.DEPLOY_PROJECT_PATH }}/"
 
