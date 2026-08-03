@@ -19,6 +19,7 @@ help: ## Show this help
 
 start: ## Start all services in the background
 	colima start && $(COMPOSE) up -d
+	@$(MAKE) urls
 
 stop: ## Stop this project's containers without removing them (leaves Colima running for other projects)
 	$(COMPOSE) stop
@@ -28,6 +29,7 @@ colima-stop: ## Stop the Colima VM entirely (stops ALL projects' containers, not
 
 restart: ## Restart all services
 	colima start && $(COMPOSE) restart
+	@$(MAKE) urls
 
 status: ## Show container status
 	$(COMPOSE) ps
@@ -49,9 +51,18 @@ ports: ## Show this project's ports and which container (if any) already holds e
 	done
 
 urls: ## Show this project's service URLs
-	@grep -ohE 'Host\(`[^`]+`\)' docker/traefik/dynamic/routes.yml | sed -E 's/Host\(`([^`]+)`\)/https:\/\/\1/' | sort
-	@echo "https://tailwind-wordpress.localhost:3009  (Vite dev server, when \`make vite-dev\` is running)"
-	@echo "http://localhost:3000  (Dockhand, shared across projects, see \`make ports\` if the port is taken by another project)"
+	@echo "🌐 Service URLs"
+	@grep -ohE 'Host\(`[^`]+`\)' docker/traefik/dynamic/routes.yml | sed -E 's/Host\(`([^`]+)`\)/\1/' | while read -r host; do \
+		case "$$host" in \
+			tailwind-wordpress.localhost) icon="🧩"; label="WordPress" ;; \
+			pma.*)                        icon="🗄️ "; label="phpMyAdmin" ;; \
+			mail.*)                       icon="📧"; label="Mailhog" ;; \
+			*)                            icon="🔗"; label="$$host" ;; \
+		esac; \
+		printf "  %s %-12s https://%s\n" "$$icon" "$$label" "$$host"; \
+	done
+	@printf "  ⚡ %-12s %s\n" "Vite (dev)" "https://tailwind-wordpress.localhost:3009  — when \`make vite-dev\` is running"
+	@printf "  🐳 %-12s %s\n" "Dockhand" "http://localhost:3000  — shared across projects, see \`make ports\` if taken"
 
 # --------------------------------------------------------------------------
 # WordPress / Composer (Bedrock)
