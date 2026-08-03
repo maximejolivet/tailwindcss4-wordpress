@@ -21,7 +21,7 @@ Site WordPress Bedrock (PHP ≥8.4) avec un thème custom Timber v2 + Tailwind C
 
 ## Commandes
 
-Toujours utiliser les cibles `make`, pas `docker compose`/`composer`/`npm` en direct — voir le tableau Commands dans @README.md (`make help` liste tout). Les cibles `make deploy*` touchent le site de production réel (o2switch) — demander confirmation à l'utilisateur avant de les exécuter.
+Toujours utiliser les cibles `make`, pas `docker compose`/`composer`/`npm` en direct — voir le tableau Commands dans @README.md (`make help` liste tout). Le déploiement (o2switch) est entièrement automatique via `.github/workflows/deploy.yml` sur push vers `main` (pas de cible `make deploy*`) — un push sur `main`, un déclenchement manuel du workflow (`workflow_dispatch`) ou l'ajout/la rotation d'un secret GitHub de déploiement touchent le site de production réel : demander confirmation à l'utilisateur avant.
 
 ## Source des paquets Composer
 
@@ -45,7 +45,7 @@ Outillage qualité PHP (scripts composer, aussi disponibles en cibles `make` —
 - [`.claude/DOCKER.md`](.claude/DOCKER.md) — commandes Docker au quotidien (start/stop/logs, accès aux conteneurs, base de données)
 - [`docker/README.md`](docker/README.md) — détails de l'environnement (Colima, Traefik, certificats, Bedrock/Composer/WP-CLI)
 - [`.claude/THEME.md`](.claude/THEME.md) — thème custom Timber v2 + Tailwind CSS 4 + Vite (architecture, composants, page builder, HMR)
-- [`.claude/DEPLOY.md`](.claude/DEPLOY.md) — déploiement en production (o2switch, manuel et CI GitHub Actions)
+- [`.claude/DEPLOY.md`](.claude/DEPLOY.md) — déploiement en production (o2switch, CI GitHub Actions — seule voie de déploiement)
 - [`.claude/prompts/WORDPRESS-MISSION-BRIEF.md`](.claude/prompts/WORDPRESS-MISSION-BRIEF.md) / [`WORDPRESS-PROCESS.md`](.claude/prompts/WORDPRESS-PROCESS.md) — mission complète et journal d'exécution réel
 
 ---
@@ -67,7 +67,7 @@ Bedrock WordPress site (PHP ≥8.4) with a custom Timber v2 + Tailwind CSS v4 + 
 
 ## Commands
 
-Always use the `make` targets, not raw `docker compose`/`composer`/`npm` — see the Commands table in @README.md (`make help` lists everything). `make deploy*` targets touch the live production site (o2switch) — confirm with the user before running them.
+Always use the `make` targets, not raw `docker compose`/`composer`/`npm` — see the Commands table in @README.md (`make help` lists everything). Deployment (o2switch) is fully automatic via `.github/workflows/deploy.yml` on push to `main` (no `make deploy*` target) — a push to `main`, a manual workflow trigger (`workflow_dispatch`), or adding/rotating a deployment GitHub secret all touch the live production site: confirm with the user first.
 
 ## Composer package source
 
@@ -91,5 +91,5 @@ PHP quality tooling (composer scripts, also wired as `make` targets — `lint`/`
 - [`.claude/DOCKER.md`](.claude/DOCKER.md) — day-to-day Docker commands (start/stop/logs, container access, database)
 - [`docker/README.md`](docker/README.md) — environment details (Colima, Traefik, certificates, Bedrock/Composer/WP-CLI)
 - [`.claude/THEME.md`](.claude/THEME.md) — custom theme: Timber v2 + Tailwind CSS 4 + Vite (architecture, components, page builder, HMR)
-- [`.claude/DEPLOY.md`](.claude/DEPLOY.md) — production deployment (o2switch, manual and GitHub Actions CI)
+- [`.claude/DEPLOY.md`](.claude/DEPLOY.md) — production deployment (o2switch, GitHub Actions CI — the only deployment path)
 - [`.claude/prompts/WORDPRESS-MISSION-BRIEF.md`](.claude/prompts/WORDPRESS-MISSION-BRIEF.md) / [`WORDPRESS-PROCESS.md`](.claude/prompts/WORDPRESS-PROCESS.md) — full mission spec and real execution journal

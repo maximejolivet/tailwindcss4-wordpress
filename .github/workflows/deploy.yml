@@ -34,12 +34,25 @@
 #                           API (port 2083), unrelated to the SSH key above.
 #                           Add it yourself via `gh secret set`, never paste
 #                           it in chat.
+# - DEPLOY_ENV_FILE         Full contents of the production .env (DB
+#                           credentials, WordPress auth salts, SENTRY_DSN...)
+#                           — written to the server on every deploy (see the
+#                           "Deploy production .env" step). Must stay FIXED
+#                           across runs: WordPress auth salts rotate every
+#                           session/cookie/nonce when they change, so
+#                           regenerating them on every deploy would log out
+#                           every visitor on every push to main. Build/rotate
+#                           it with `bin/generate-production-env.php` (only
+#                           when a credential actually needs to change) then
+#                           `gh secret set DEPLOY_ENV_FILE`, never paste it
+#                           in chat.
 #
 # Extras beyond the bare minimum:
 # - `workflow_dispatch` takes a `dry_run` boolean input — runs everything
-#   (build, whitelist, SSH) but passes `--dry-run` to the final rsync, the
-#   CI equivalent of `make deploy-dry-run`. The post-rsync smoke test is
-#   skipped on a dry run since the server is never actually touched.
+#   (build, whitelist, SSH) but passes `--dry-run` to the final rsync and
+#   skips writing .env, a safe on-demand preview of what a deploy would sync/
+#   delete on the server without changing anything. The post-rsync smoke
+#   test is skipped on a dry run too, since the server is never touched.
 # - `deploy` declares a `production` GitHub environment (Settings >
 #   Environments), which gives this workflow a deployment history/URL in
 #   the GitHub UI and a place to add protection rules later if ever needed.
@@ -61,7 +74,7 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: 'Dry run (rsync --dry-run, changes nothing on the server — CI equivalent of `make deploy-dry-run`)'
+        description: 'Dry run (rsync --dry-run and skip writing .env — previews the deploy, changes nothing on the server)'
         type: boolean
         default: false
 
@@ -102,10 +115,10 @@ jobs:
       - name: Composer audit — CVE scan
         run: composer audit
 
-      # vendor/ is rebuilt here (on the runner) rather than on the server:
-      # a fresh checkout has no dev vendor/ to accidentally wipe, unlike a
-      # developer's machine running `composer install --no-dev` locally
-      # (see .claude/DEPLOY.md §3 for why `make deploy` does the opposite).
+      # vendor/ is rebuilt here (on the runner), never on the server: this
+      # workflow is the only deploy path (no more local `make deploy`), and
+      # a fresh checkout has no dev vendor/ to accidentally wipe by running
+      # `composer install --no-dev` in place.
       # Plain `composer install` here, not the composite action again —
       # PHP is already set up from the step above, re-running the action
       # would redundantly re-run shivammathur/setup-php for no reason.
@@ -259,6 +272,23 @@ jobs:
             --exclude 'web/app/uploads' --exclude 'web/app/cache' \
             --exclude '.env' --exclude '.env.*' \
             site/ "${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }}:${{ secrets.DEPLOY_PROJECT_PATH }}/"
+
+      # Writes the production .env from DEPLOY_ENV_FILE (its full, fixed
+      # contents — DB credentials, WordPress auth salts, SENTRY_DSN...).
+      # Piped in via env: + a here-string rather than interpolated straight
+      # into the run: script, so the secret's content is never re-parsed by
+      # the shell. Safe to run on every deploy specifically because the
+      # secret's content doesn't change between runs — see the "Required
+      # secrets" comment at the top of this file for why that matters
+      # (rotating WordPress auth salts on every push would invalidate every
+      # active session/cookie/nonce). Skipped on a dry run, same as rsync.
+      - name: Deploy production .env
+        if: ${{ !inputs.dry_run }}
+        env:
+          ENV_FILE: ${{ secrets.DEPLOY_ENV_FILE }}
+        run: |
+          ssh "${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }}" \
+            "cat > ${{ secrets.DEPLOY_PROJECT_PATH }}/.env" <<< "$ENV_FILE"
 
       # Would have caught the 2026-08-02 outage automatically (dist/.vite/
       # manifest.json silently dropped by upload-artifact, inc/vite.php

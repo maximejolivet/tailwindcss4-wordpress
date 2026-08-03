@@ -1,16 +1,12 @@
 COMPOSE = docker compose -f docker/docker-compose.yml --project-directory .
 THEME_DIR = web/app/themes/custom/tailwind
 
--include .env.deploy
-export
-
 .PHONY: help \
 	start stop colima-stop restart status logs shell ports urls \
 	install update wp wp-login check-updates \
 	lint lint-fix phpstan audit \
 	dockhand-register \
-	npm vite-install vite-dev vite-build \
-	deploy-dry-run deploy deploy-env deploy-permalinks
+	npm vite-install vite-dev vite-build
 
 .DEFAULT_GOAL := help
 
@@ -121,49 +117,3 @@ vite-dev: ## Start the Vite dev server (HMR) at https://tailwind-wordpress.local
 
 vite-build: ## Build the tailwind theme's production assets
 	$(COMPOSE) exec node npm --prefix $(THEME_DIR) run build
-
-# --------------------------------------------------------------------------
-# Déploiement (o2switch) — voir docs/deploy.md pour la configuration
-# one-shot côté cPanel (document root, base de données, .env serveur).
-# Variables lues depuis .env.deploy (non versionné, cf. .env.deploy.example).
-# --------------------------------------------------------------------------
-
-DEPLOY_SSH = ssh -p $(DEPLOY_SSH_PORT) $(DEPLOY_SSH_USER)@$(DEPLOY_SSH_HOST)
-# dist/ is gitignored (build artifact, never versioned) but must still be
-# deployed: the --include rules carve it back out before .gitignore's
-# blanket exclude applies (rsync filter rules are first-match-wins, so the
-# includes must come first) — otherwise `vite-build`'s output never leaves
-# the runner/machine and the server keeps serving a stale or missing
-# manifest.json (breaks CSS/JS in production).
-# The 'P' (protect) filter keeps previously deployed dist/assets/* files
-# from being removed by --delete: Vite content-hashes every filename, so
-# each deploy ships new hashed files without touching old ones, but --delete
-# would otherwise delete the old ones in the same rsync pass that overwrites
-# index.php/manifest.json — any visitor whose page is still referencing the
-# old hash (mid-deploy or just before it) would get a 404 on their CSS/JS.
-# Orphaned old hashes just accumulate in dist/assets/ (small, immutable,
-# cache-busted) instead of being deleted.
-DEPLOY_RSYNC_EXCLUDES = --include 'web/app/themes/**/dist/' --include 'web/app/themes/**/dist/**' --filter='P web/app/themes/**/dist/assets/**' --exclude-from=.gitignore --exclude '.git' --exclude 'docker' --exclude '.env.deploy*'
-
-deploy-dry-run: vite-build ## Preview what `make deploy` would sync/delete on the server, without changing anything
-	rsync -avzn --delete $(DEPLOY_RSYNC_EXCLUDES) -e "ssh -p $(DEPLOY_SSH_PORT)" \
-		./ $(DEPLOY_SSH_USER)@$(DEPLOY_SSH_HOST):$(DEPLOY_PROJECT_PATH)/
-
-deploy: vite-build ## Deploy to o2switch: rsync tracked/built files, then composer install --no-dev on the server
-	rsync -avz --delete $(DEPLOY_RSYNC_EXCLUDES) -e "ssh -p $(DEPLOY_SSH_PORT)" \
-		./ $(DEPLOY_SSH_USER)@$(DEPLOY_SSH_HOST):$(DEPLOY_PROJECT_PATH)/
-	$(DEPLOY_SSH) "cd $(DEPLOY_PROJECT_PATH) && $(DEPLOY_PHP_BIN) \$$(command -v composer) install --no-dev --optimize-autoloader --no-interaction"
-
-deploy-env: ## One-time: push a generated production .env to the server (never runs automatically as part of `deploy`)
-	@test -n "$(DEPLOY_DB_PASSWORD)" || (echo "DEPLOY_DB_PASSWORD missing in .env.deploy" && exit 1)
-	$(COMPOSE) exec -T php php bin/generate-production-env.php '$(DEPLOY_DB_NAME)' '$(DEPLOY_DB_USER)' '$(DEPLOY_DB_PASSWORD)' '$(DEPLOY_DOMAIN)' '$(SENTRY_DSN)' > /tmp/deploy.env
-	@echo "Generated a fresh production .env (new random salts) — review /tmp/deploy.env before this pushes it:"
-	@cat /tmp/deploy.env
-	@echo ""
-	@read -p "Copy this to $(DEPLOY_PROJECT_PATH)/.env on the server via scp? [y/N] " ans && [ "$$ans" = "y" ]
-	scp -P $(DEPLOY_SSH_PORT) /tmp/deploy.env $(DEPLOY_SSH_USER)@$(DEPLOY_SSH_HOST):$(DEPLOY_PROJECT_PATH)/.env
-	@rm /tmp/deploy.env
-
-deploy-permalinks: ## One-time after first deploy: flush permalinks so WordPress (re)writes web/.htaccess on the server
-	@echo "wp-cli isn't a project dependency (not in composer.json) — checking for a global 'wp' on the server instead."
-	$(DEPLOY_SSH) "cd $(DEPLOY_PROJECT_PATH)/web && command -v wp >/dev/null && wp rewrite flush --hard --path=. || echo 'No wp-cli on the server — flush permalinks manually once via wp-admin > Réglages > Permaliens (just open the page and click Enregistrer)'"

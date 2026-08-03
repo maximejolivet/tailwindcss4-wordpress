@@ -5,6 +5,16 @@
  * run — never reuse this to regenerate an existing prod .env, that would log
  * out every session and invalidate auth cookies/nonces).
  *
+ * Its output is meant to be stored verbatim in the DEPLOY_ENV_FILE GitHub
+ * secret (.github/workflows/deploy.yml writes it to the server on every
+ * deploy) — run this once to seed that secret, and only ever again to
+ * deliberately rotate a credential (new DB password, new SENTRY_DSN...),
+ * never on a routine basis:
+ *
+ *   docker compose -f docker/docker-compose.yml --project-directory . \
+ *     exec -T php php bin/generate-production-env.php DB_NAME DB_USER DB_PASSWORD DOMAIN SENTRY_DSN \
+ *     | gh secret set DEPLOY_ENV_FILE
+ *
  * Usage: php bin/generate-production-env.php DB_NAME DB_USER DB_PASSWORD DOMAIN [SENTRY_DSN]
  */
 

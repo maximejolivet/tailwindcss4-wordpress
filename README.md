@@ -110,14 +110,14 @@ Toutes les commandes s'exécutent via `make` depuis la racine du repo (voir `Mak
 | `make phpstan` | Analyse statique PHPStan, niveau 5, conscient de WordPress/ACF |
 | `make audit` | Vérifie les vulnérabilités de sécurité connues des dépendances Composer |
 
-### Déploiement (o2switch — voir [`.claude/DEPLOY.md`](.claude/DEPLOY.md))
+### Déploiement (o2switch)
 
-| Commande | Effet |
-|---|---|
-| `make deploy-dry-run` | Prévisualise ce que `make deploy` synchroniserait/supprimerait sur le serveur, sans rien changer |
-| `make deploy` | Construit le thème, rsync vers o2switch, exécute `composer install --no-dev` sur le serveur |
-| `make deploy-env` | Une fois : génère et envoie un `.env` de production sur le serveur (confirmation interactive) |
-| `make deploy-permalinks` | Une fois après le premier déploiement : vide les permaliens pour que WordPress (ré)écrive `web/.htaccess` |
+Pas de cible `make` : le déploiement est entièrement automatique, sur push
+vers `main` (`.github/workflows/deploy.yml`) — build du thème, rsync vers
+o2switch, écriture du `.env` de production. Voir
+[`.claude/DEPLOY.md`](.claude/DEPLOY.md) pour le détail (secrets requis,
+`workflow_dispatch` pour un aperçu `dry_run`, historique des ennuis
+rencontrés).
 
 ### Dockhand
 
@@ -269,14 +269,13 @@ All commands run via `make` from the repo root (see `Makefile`; run `make help` 
 | `make phpstan` | PHPStan static analysis, level 5, WordPress/ACF-aware |
 | `make audit` | Check Composer dependencies for known security vulnerabilities |
 
-### Deployment (o2switch — see [`.claude/DEPLOY.md`](.claude/DEPLOY.md))
+### Deployment (o2switch)
 
-| Command | Effect |
-|---|---|
-| `make deploy-dry-run` | Preview what `make deploy` would sync/delete on the server, without changing anything |
-| `make deploy` | Build the theme, rsync to o2switch, run `composer install --no-dev` on the server |
-| `make deploy-env` | One-time: generate and push a production `.env` to the server (interactive confirmation) |
-| `make deploy-permalinks` | One-time after first deploy: flush permalinks so WordPress (re)writes `web/.htaccess` |
+No `make` target: deployment is fully automatic, on push to `main`
+(`.github/workflows/deploy.yml`) — builds the theme, rsyncs to o2switch,
+writes the production `.env`. See [`.claude/DEPLOY.md`](.claude/DEPLOY.md)
+for the details (required secrets, `workflow_dispatch` for a `dry_run`
+preview, history of issues hit).
 
 ### Dockhand
 
