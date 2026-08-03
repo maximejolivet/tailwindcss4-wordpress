@@ -156,7 +156,7 @@ deploy: vite-build ## Deploy to o2switch: rsync tracked/built files, then compos
 
 deploy-env: ## One-time: push a generated production .env to the server (never runs automatically as part of `deploy`)
 	@test -n "$(DEPLOY_DB_PASSWORD)" || (echo "DEPLOY_DB_PASSWORD missing in .env.deploy" && exit 1)
-	$(COMPOSE) exec -T php php bin/generate-production-env.php '$(DEPLOY_DB_NAME)' '$(DEPLOY_DB_USER)' '$(DEPLOY_DB_PASSWORD)' '$(DEPLOY_DOMAIN)' > /tmp/deploy.env
+	$(COMPOSE) exec -T php php bin/generate-production-env.php '$(DEPLOY_DB_NAME)' '$(DEPLOY_DB_USER)' '$(DEPLOY_DB_PASSWORD)' '$(DEPLOY_DOMAIN)' '$(SENTRY_DSN)' > /tmp/deploy.env
 	@echo "Generated a fresh production .env (new random salts) — review /tmp/deploy.env before this pushes it:"
 	@cat /tmp/deploy.env
 	@echo ""

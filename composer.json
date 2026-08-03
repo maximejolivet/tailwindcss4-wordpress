@@ -38,6 +38,7 @@
     "roots/bedrock-disallow-indexing": "^2.0",
     "roots/wordpress": "^7.0",
     "roots/wp-config": "^1.0",
+    "sentry/sentry": "^4.29",
     "timber/timber": "^2.1",
     "vlucas/phpdotenv": "^5.0",
     "wp-plugin/polylang": "^3.8",
