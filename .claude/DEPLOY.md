@@ -157,26 +157,14 @@ inclus, plus de `make deploy*`) le 2026-08-03.
    différent de celui du gist d'origine, daté de 2024) — nettoyage fait
    manuellement une fois via cPanel en attendant d'ajuster le pattern
    d'extraction.
-3. **`Permission denied (publickey...)` au rsync** — la clé publique avait
-   été **importée** dans cPanel (Accès SSH > Gérer les clés SSH) mais pas
-   **autorisée** (case à part, facile à manquer) : importer une clé SSH ne
-   suffit pas à cPanel, il faut explicitement l'autoriser avant qu'elle
-   fonctionne pour l'authentification.
-4. **CSS/JS absents en prod après un déploiement, sans erreur nulle part**
-   (2026-08-02) — `actions/upload-artifact` exclut les fichiers/dossiers
-   cachés par défaut depuis la v4.4 (anti-fuite de secrets) ; le manifest
-   Vite (`dist/.vite/manifest.json`) vit dans un dossier caché, donc
-   l'artefact le perdait silencieusement, `inc/vite.php` ne trouvait pas
-   de manifest et n'enqueue rien (pas d'erreur PHP). Corrigé avec
-   `include-hidden-files: true` sur `actions/upload-artifact`.
-5. **Ce même bug de whitelist a refait surface** au premier run du
+3. **Ce même bug de whitelist a refait surface** au premier run du
    pipeline fusionné (2026-08-03) — le job `Deploy` ne faisait qu'un
    `download-artifact`, jamais de `checkout` : `.github/scripts/
    o2switch-whitelist.sh` (extrait du YAML ce jour-là) n'existe que dans
    le repo source, pas dans l'artefact déployable (`.github` en est
    exclu). Corrigé en ajoutant `actions/checkout@v7` en premier step du
    job `Deploy`.
-6. **`make deploy-env` bloqué par `Permission denied (publickey...)` en
+4. **`make deploy-env` bloqué par `Permission denied (publickey...)` en
    local** (2026-08-03) — la machine du développeur n'était pas (ou plus)
    whitelistée/autorisée côté o2switch pour du SSH manuel, contrairement
    au runner GitHub Actions qui gère sa propre whitelist à chaque run.
@@ -185,7 +173,7 @@ inclus, plus de `make deploy*`) le 2026-08-03.
    lui-même (`DEPLOY_ENV_FILE`, cf. §2) — un seul chemin de déploiement,
    plus de divergence possible entre "ce que fait `make deploy`" et "ce
    que fait le CI".
-7. **Permaliens cassés en prod après (quasiment) chaque déploiement CI,
+5. **Permaliens cassés en prod après (quasiment) chaque déploiement CI,
    sans que le smoke test ne le détecte** (découvert le 2026-08-03) —
    `web/.htaccess` est gitignore (convention Bedrock : WordPress le génère
    lui-même au flush des permaliens), donc jamais présent dans le repo ni
@@ -370,26 +358,14 @@ included, no more `make deploy*`) on 2026-08-03.
    whitelist page's HTML format differs from the original 2024 gist) —
    cleaned up manually once via cPanel while waiting to adjust the
    extraction pattern.
-3. **`Permission denied (publickey...)` on rsync** — the public key had
-   been **imported** into cPanel (SSH Access > Manage SSH Keys) but not
-   **authorized** (a separate checkbox, easy to miss): importing an SSH key
-   isn't enough in cPanel, it must be explicitly authorized before it works
-   for authentication.
-4. **CSS/JS missing in production after a deploy, no error anywhere**
-   (2026-08-02) — `actions/upload-artifact` excludes hidden files/dirs by
-   default since v4.4 (to avoid leaking secrets by accident); Vite's
-   manifest (`dist/.vite/manifest.json`) lives in a hidden folder, so the
-   artifact silently dropped it, `inc/vite.php` found no manifest and
-   enqueued nothing (no PHP error). Fixed with `include-hidden-files:
-   true` on `actions/upload-artifact`.
-5. **The same whitelist script resurfaced this bug** on the first run of
+3. **The same whitelist script resurfaced this bug** on the first run of
    the merged pipeline (2026-08-03) — the `Deploy` job only ever did a
    `download-artifact`, never a `checkout`: `.github/scripts/
    o2switch-whitelist.sh` (extracted out of the YAML that same day) only
    exists in the source repo, not in the deployable artifact (`.github`
    is excluded from it). Fixed by adding `actions/checkout@v7` as the
    first step of the `Deploy` job.
-6. **`make deploy-env` blocked by `Permission denied (publickey...)`
+4. **`make deploy-env` blocked by `Permission denied (publickey...)`
    locally** (2026-08-03) — the developer's machine wasn't (or no longer)
    whitelisted/authorized on o2switch for manual SSH, unlike the GitHub
    Actions runner, which manages its own whitelist entry on every run.
@@ -397,7 +373,7 @@ included, no more `make deploy*`) on 2026-08-03.
    deploy*` entirely and have CI itself own writing `.env`
    (`DEPLOY_ENV_FILE`, see §2) — a single deployment path, no more
    possible drift between "what `make deploy` does" and "what CI does".
-7. **Permalinks broken in production after (almost) every CI deploy, with
+5. **Permalinks broken in production after (almost) every CI deploy, with
    the smoke test never catching it** (discovered 2026-08-03) —
    `web/.htaccess` is gitignored (Bedrock convention: WordPress generates
    it itself on permalink flush), so it's never in the repo or the
