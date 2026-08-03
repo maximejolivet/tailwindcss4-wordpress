@@ -1,5 +1,27 @@
 {
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.command // empty' | { read -r cmd; case \"$cmd\" in *\"git push\"*|*\"gh workflow run\"*|*\"gh secret set\"*|*\"gh secret remove\"*|*\"gh secret delete\"*) echo \"[Hook] Reminder: this touches production (push to main auto-deploys via .github/workflows/deploy.yml, or triggers/rotates a deploy secret) - confirm with the user first if not already agreed. See CLAUDE.md.\" >&2;; esac; }; true"
+          }
+        ],
+        "description": "Non-blocking reminder before commands that touch the o2switch deploy pipeline"
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.command // empty' | { read -r cmd; case \"$cmd\" in *make*) : ;; *\"docker compose\"*|*\"docker-compose\"*|*\"composer \"*|*\"npm \"*) echo \"[Hook] Reminder: this repo prefers make targets over raw docker/composer/npm (see README Commands table / 'make help').\" >&2;; esac; }; true"
+          }
+        ],
+        "description": "Non-blocking reminder to prefer make targets over raw docker/composer/npm"
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit",
