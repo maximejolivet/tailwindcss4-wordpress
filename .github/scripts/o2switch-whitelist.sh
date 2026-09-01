@@ -20,7 +20,14 @@ set -euo pipefail
 : "${CPANEL_USER:?missing}" "${CPANEL_PASSWORD:?missing}" "${CPANEL_HOST:?missing}" "${RUNNER_IP:?missing}"
 
 ENDPOINT='frontend/o2switch/o2switch-ssh-whitelist/index.live.php'
-CPANEL="https://${CPANEL_USER}:${CPANEL_PASSWORD}@${CPANEL_HOST}:2083"
+
+# cPanel requires the credentials URL-encoded in the userinfo part — a raw
+# password containing a URL-special character (@, :, /, %, #, ...) breaks
+# the URL, so curl hits the wrong endpoint and cPanel replies with an error
+# page instead of JSON, which then fails `jq` with an opaque parse error.
+CPANEL_USER_ENC=$(printf '%s' "$CPANEL_USER" | jq -sRr @uri)
+CPANEL_PASSWORD_ENC=$(printf '%s' "$CPANEL_PASSWORD" | jq -sRr @uri)
+CPANEL="https://${CPANEL_USER_ENC}:${CPANEL_PASSWORD_ENC}@${CPANEL_HOST}:2083"
 
 echo "Fetching currently whitelisted IPs..."
 RESPONSE=$(curl -sX GET "$CPANEL/$ENDPOINT?r=list")
